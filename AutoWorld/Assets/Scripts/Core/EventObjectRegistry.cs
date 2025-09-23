@@ -5,19 +5,19 @@ namespace AutoWorld.Core
 {
     public sealed class EventObjectRegistry
     {
-        private readonly Dictionary<EventObjectType, Dictionary<int, IEventParticipant>> participants = new();
+        private readonly Dictionary<EventObjectType, Dictionary<int, IEventParticipant>> participants = new Dictionary<EventObjectType, Dictionary<int, IEventParticipant>>();
 
         public void Register(IEventParticipant participant)
         {
             if (participant == null)
             {
-                throw new ArgumentNullException(nameof(participant));
+                throw new ArgumentNullException("participant");
             }
 
             var identifier = participant.EventObject;
             if (identifier.Type == EventObjectType.None)
             {
-                throw new ArgumentException("유효한 이벤트 객체 타입이 필요합니다.", nameof(participant));
+                throw new ArgumentException("유효한 이벤트 객체 타입이 필요합니다.", "participant");
             }
 
             if (!participants.TryGetValue(identifier.Type, out var collection))
@@ -56,7 +56,7 @@ namespace AutoWorld.Core
                 return true;
             }
 
-            participant = default!;
+            participant = null;
             return false;
         }
 
@@ -72,7 +72,7 @@ namespace AutoWorld.Core
                 return collection.Values;
             }
 
-            return Array.Empty<IEventParticipant>();
+            return new IEventParticipant[0];
         }
     }
 }

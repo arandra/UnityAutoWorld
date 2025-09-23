@@ -1,15 +1,21 @@
 namespace AutoWorld.Core
 {
-    public readonly record struct EventParameter
+    public struct EventParameter
     {
-        public EventObject? Target { get; init; }
+        private string stringValue;
 
-        public EventObjectType TargetTypes { get; init; }
+        public EventObject? Target { get; set; }
 
-        public int IntValue { get; init; }
+        public EventObjectType TargetTypes { get; set; }
 
-        public string StringValue { get; init; } = string.Empty;
+        public int IntValue { get; set; }
 
-        public object? CustomObject { get; init; }
+        public string StringValue
+        {
+            get => stringValue ?? string.Empty;
+            set => stringValue = value ?? string.Empty;
+        }
+
+        public object CustomObject { get; set; }
     }
 }

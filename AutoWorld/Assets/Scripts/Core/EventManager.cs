@@ -5,9 +5,9 @@ namespace AutoWorld.Core
 {
     public sealed class EventManager
     {
-        private static readonly Lazy<EventManager> sharedInstance = new(() => new EventManager());
+        private static readonly Lazy<EventManager> sharedInstance = new Lazy<EventManager>(() => new EventManager());
 
-        private readonly Dictionary<EventType, HashSet<EventObject>> registrations = new();
+        private readonly Dictionary<EventType, HashSet<EventObject>> registrations = new Dictionary<EventType, HashSet<EventObject>>();
 
         private EventManager()
         {

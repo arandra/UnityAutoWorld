@@ -2,7 +2,7 @@ using System;
 
 namespace AutoWorld.Core
 {
-    public readonly struct EventObject : IEquatable<EventObject>
+    public struct EventObject : IEquatable<EventObject>
     {
         public EventObject(EventObjectType type, int id)
         {
@@ -14,12 +14,30 @@ namespace AutoWorld.Core
 
         public int Id { get; }
 
-        public bool Equals(EventObject other) => Type == other.Type && Id == other.Id;
+        public bool Equals(EventObject other)
+        {
+            return Type == other.Type && Id == other.Id;
+        }
 
-        public override bool Equals(object? obj) => obj is EventObject other && Equals(other);
+        public override bool Equals(object obj)
+        {
+            return obj is EventObject other && Equals(other);
+        }
 
-        public override int GetHashCode() => HashCode.Combine((int)Type, Id);
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hash = 17;
+                hash = (hash * 31) + (int)Type;
+                hash = (hash * 31) + Id;
+                return hash;
+            }
+        }
 
-        public override string ToString() => $"{Type}:{Id}";
+        public override string ToString()
+        {
+            return string.Format("{0}:{1}", Type, Id);
+        }
     }
 }
