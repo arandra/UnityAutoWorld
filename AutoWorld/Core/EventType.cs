@@ -1,7 +1,8 @@
 namespace AutoWorld.Core
 {
-    public enum WorldEventType
+    public enum EventType
     {
+        None = 0,
         TerritoryExpansion,
         PopulationGrowth,
         JobAssignmentChanged,
