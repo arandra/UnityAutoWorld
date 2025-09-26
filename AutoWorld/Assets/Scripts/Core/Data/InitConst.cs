@@ -21,6 +21,7 @@ namespace AutoWorld.Core.Data
         public int InitFood;
         public int MillisecondPerTick;
         public int MaxSoldierLevel;
+        public int TicksForRest;
     }
 
 #nullable restore

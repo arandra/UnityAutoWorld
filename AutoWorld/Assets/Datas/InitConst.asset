@@ -27,8 +27,10 @@ MonoBehaviour:
     InitBadLandSize: 12
     InitFields:
     - ExplorationOffice
+    - TownHall
     - Residence
     - Residence
     InitFood: 50
     MillisecondPerTick: 100
     MaxSoldierLevel: 10
+    TicksForRest: 150
