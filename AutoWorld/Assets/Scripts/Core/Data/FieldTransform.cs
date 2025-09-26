@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace Datas.Tables
+namespace AutoWorld.Core.Data
 {
 #nullable enable
     [Serializable]

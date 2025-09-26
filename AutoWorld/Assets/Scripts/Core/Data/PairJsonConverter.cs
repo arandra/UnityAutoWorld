@@ -3,7 +3,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Datas
+namespace AutoWorld.Core.Data
 {
     public sealed class PairArrayJsonConverter : JsonConverter
     {

@@ -5,14 +5,15 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace Datas.Tables
+namespace AutoWorld.Core.Data
 {
 #nullable enable
     [Serializable]
-    public partial class Job
+    public partial class GridMap
     {
-        public string Name = string.Empty;
-        public List<Pair<string, int>> CostResources = new();
+        public int Size;
+        public int X;
+        public int Y;
     }
 
 #nullable restore

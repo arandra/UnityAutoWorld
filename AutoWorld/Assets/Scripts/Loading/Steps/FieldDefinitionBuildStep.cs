@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoWorld.Core;
 using Datas;
-using Datas.Tables;
+using AutoWorld.Core.Data;
 
 namespace AutoWorld.Loading.Steps
 {

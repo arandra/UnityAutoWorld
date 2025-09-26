@@ -5,15 +5,14 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace Datas.Tables
+namespace AutoWorld.Core.Data
 {
 #nullable enable
     [Serializable]
-    public partial class GridMap
+    public partial class Field
     {
-        public int Size;
-        public int X;
-        public int Y;
+        public string Name = string.Empty;
+        public bool Empty;
     }
 
 #nullable restore

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Datas
+namespace AutoWorld.Core.Data
 {
     [Serializable]
     public struct Pair<TKey, TValue> : IEquatable<Pair<TKey, TValue>>

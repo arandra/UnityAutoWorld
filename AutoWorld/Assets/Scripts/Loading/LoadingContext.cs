@@ -8,7 +8,7 @@ namespace AutoWorld.Loading
     {
         public InitConst InitConstAsset { get; set; }
 
-        public Datas.Const.InitConst InitConstData { get; set; }
+        public AutoWorld.Core.Data.InitConst InitConstData { get; set; }
 
         public ManualTickScheduler TickScheduler { get; set; }
 

@@ -5,14 +5,17 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace Datas.Tables
+namespace AutoWorld.Core.Data
 {
 #nullable enable
     [Serializable]
-    public partial class Field
+    public partial class Task
     {
+        public string Field = string.Empty;
         public string Name = string.Empty;
-        public bool Empty;
+        public string JobName = string.Empty;
+        public int Tick;
+        public string Result = string.Empty;
     }
 
 #nullable restore

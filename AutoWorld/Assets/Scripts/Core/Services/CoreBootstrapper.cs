@@ -6,7 +6,7 @@ namespace AutoWorld.Core.Services
 {
     public static class CoreBootstrapper
     {
-        public static GameSession CreateGameSession(Datas.Const.InitConst initConst, ManualTickScheduler scheduler, IReadOnlyDictionary<FieldType, FieldDefinition> definitions, ICoreEvents coreEvents)
+        public static GameSession CreateGameSession(AutoWorld.Core.Data.InitConst initConst, ManualTickScheduler scheduler, IReadOnlyDictionary<FieldType, FieldDefinition> definitions, ICoreEvents coreEvents)
         {
             if (initConst == null)
             {

@@ -4,7 +4,7 @@ namespace Datas
 {
     public class InitConst : ScriptableObject
     {
-        public Datas.Const.InitConst Data;
+        public AutoWorld.Core.Data.InitConst Data;
     }
 }
 

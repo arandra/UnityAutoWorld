@@ -1,6 +1,6 @@
 using System;
 using Datas;
-using Datas.Tables;
+using AutoWorld.Core.Data;
 
 namespace AutoWorld.Loading.Steps
 {
