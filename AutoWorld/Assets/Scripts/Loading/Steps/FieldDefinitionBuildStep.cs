@@ -18,7 +18,7 @@ namespace AutoWorld.Loading.Steps
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (context.FieldsAsset?.Values == null || context.FieldTransformsAsset?.Values == null)
+            if (context.FieldsAsset?.Values == null || context.FieldTransformsAsset?.Values == null || context.GridMapsAsset?.Values == null || context.JobsAsset?.Values == null)
             {
                 throw new InvalidOperationException("필드 관련 데이터가 로드되지 않았습니다.");
             }
@@ -57,6 +57,7 @@ namespace AutoWorld.Loading.Steps
             }
 
             context.FieldDefinitions = definitions;
+            // TODO: gridMaps와 jobs 데이터를 활용한 추가 초기화를 연결할 수 있습니다.
         }
 
         private static IReadOnlyList<ResourceAmount> BuildResourceAmounts(IEnumerable<Pair<string, int>> pairs)

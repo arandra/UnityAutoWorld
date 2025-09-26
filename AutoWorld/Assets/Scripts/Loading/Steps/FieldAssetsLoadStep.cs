@@ -1,5 +1,6 @@
 using System;
 using Datas;
+using Datas.Tables;
 
 namespace AutoWorld.Loading.Steps
 {
@@ -7,12 +8,16 @@ namespace AutoWorld.Loading.Steps
     {
         private readonly Fields fields;
         private readonly FieldTransforms transforms;
+        private readonly GridMaps gridMaps;
+        private readonly Jobs jobs;
         private readonly Tasks tasks;
 
-        public FieldAssetsLoadStep(Fields fields, FieldTransforms transforms, Tasks tasks)
+        public FieldAssetsLoadStep(Fields fields, FieldTransforms transforms, Tasks tasks, GridMaps gridMaps, Jobs jobs)
         {
             this.fields = fields;
             this.transforms = transforms;
+            this.gridMaps = gridMaps;
+            this.jobs = jobs;
             this.tasks = tasks;
         }
 
@@ -35,6 +40,16 @@ namespace AutoWorld.Loading.Steps
                 throw new InvalidOperationException("FieldTransforms 자산이 설정되지 않았습니다.");
             }
 
+            if (gridMaps == null)
+            {
+                throw new InvalidOperationException("GridMaps 자산이 설정되지 않았습니다.");
+            }
+
+            if (jobs == null)
+            {
+                throw new InvalidOperationException("Jobs 자산이 설정되지 않았습니다.");
+            }
+
             if (tasks == null)
             {
                 throw new InvalidOperationException("Tasks 자산이 설정되지 않았습니다.");
@@ -42,6 +57,8 @@ namespace AutoWorld.Loading.Steps
 
             context.FieldsAsset = fields;
             context.FieldTransformsAsset = transforms;
+            context.GridMapsAsset = gridMaps;
+            context.JobsAsset = jobs;
             context.TasksAsset = tasks;
         }
     }
