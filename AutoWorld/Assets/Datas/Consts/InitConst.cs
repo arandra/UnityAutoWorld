@@ -20,6 +20,7 @@ namespace Datas.Const
         public List<string> InitFields = new();
         public int InitFood;
         public int MillisecondPerTick;
+        public int MaxSoldierLevel;
     }
 
 #nullable restore

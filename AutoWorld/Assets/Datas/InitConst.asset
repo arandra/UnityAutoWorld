@@ -31,3 +31,4 @@ MonoBehaviour:
     - Residence
     InitFood: 50
     MillisecondPerTick: 100
+    MaxSoldierLevel: 10

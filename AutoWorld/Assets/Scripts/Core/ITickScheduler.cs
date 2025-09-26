@@ -7,6 +7,12 @@ namespace AutoWorld.Core
     {
         double TickDurationMillis { get; }
 
+        /// <summary>
+        /// 런타임 동안 tick 간격을 변경한다.
+        /// </summary>
+        /// <param name="durationMillis">밀리초 단위 간격</param>
+        void SetTickDuration(double durationMillis);
+
         void Register(ITickListener listener);
 
         void Unregister(ITickListener listener);

@@ -4,6 +4,9 @@ namespace AutoWorld.Core
     {
         Worker,
         Farmer,
-        Merchant
+        Miner,
+        WoodCutter,
+        Explorer,
+        Soldier
     }
 }

@@ -7,10 +7,10 @@
 ## 작업 항목
 ### 1. 틱 축 확장
 - `AutoWorld/Assets/Scripts/Core/ITickScheduler.cs`를 구현하는 `ManualTickScheduler`를 추가해 틱 인덱스와 경과 시간을 계산하고 `ITickListener`에게 전달한다.
-- 틱 호출자가 직접 `AdvanceTick`을 호출하는 구조로 만들어 콘솔 등 비 Unity 환경에서도 실행 가능하게 한다.
+- 틱 호출자는 `AdvanceTick`(가칭)을 직접 호출하며, 틱 간격은 `InitConst`에 저장된 초기값을 참조하고 런타임에 `ITickScheduler.SetTickDuration`으로 조정 가능해야 한다.
 
 ### 2. 도메인 주체 정의
-- 건물, 주민, 자원 풀 등 상태를 가진 클래스를 작성하고 필요한 경우 `IEventParticipant`, `ITickListener`, `IEventListener`를 구현한다.
+- 필드(FieldDefinition), 주민, 자원 풀 등 상태를 가진 클래스를 작성하고 필요한 경우 `IEventParticipant`, `ITickListener`, `IEventListener`를 구현한다.
 - 각 객체는 자신의 상태를 틱마다 갱신하고, 필요 시 `EventManager`에 이벤트를 발생시킨다.
 
 ### 3. 레지스트리 안전장치
@@ -18,7 +18,7 @@
 - 참가자 등록과 해제를 위한 일관된 서비스 인터페이스를 마련한다.
 
 ### 4. 초기화 파이프라인
-- 코어 전용 부트스트래퍼를 만들어 기본 데이터 묶음과 도메인 객체를 생성하고 레지스트리에 등록한다.
+- 코어 전용 부트스트래퍼를 만들어 기본 데이터 묶음(FieldDefinition, InitConst 등)과 도메인 객체를 생성하고 레지스트리에 등록한다.
 - 부트스트래퍼는 틱 스케줄러와 도메인 객체를 연결하며 전체 루프를 시작한다.
 
 ### 5. 외부 연동 어댑터
@@ -30,6 +30,6 @@
 - 자동화된 테스트를 통해 코어 변경 시 회귀를 빠르게 감지한다.
 
 ## 다음 단계 제안
-1. 틱 스케줄러와 기본 `ITickListener` 틀을 구현한다.
+1. ManualTickScheduler와 기본 `ITickListener` 틀을 구현해 InitConst 기반 초기 틱 간격을 적용한다.
 2. 도메인 상태 객체와 레지스트리 헬퍼 설계를 확정한다.
 3. 코어만 사용하는 간단한 콘솔 예제를 작성해 전체 흐름을 검증한다.

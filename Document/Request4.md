@@ -1,57 +1,84 @@
-# 도메인 데이터 스펙 초안
+# 도메인 데이터 스펙 정리 (Request 4)
 
 ## 1. 자원(Resource)
-| 이름             | 설명                         | 비고              |
-|------------------|------------------------------|-------------------|
-| PopulationPoint  | 인구 성장에 사용되는 포인트  | 소비 시 감소      |
-| TerritoryPoint   | 영토 확장에 필요한 포인트    | 건물 건설 시 소비 |
-| Crop             | 농장에서 생산되는 작물       | 소비/생산 자원    |
-| Coin             | 교환 혹은 시장 활동에 쓰임   | 화폐 자원         |
+| 이름  | 설명                     | 비고               |
+|-------|--------------------------|--------------------|
+| Food  | 생존 유지 용 식량        | `FoodConsumeTicks` 주기로 1 소비 |
+| Wood  | 건설 및 제작 재료       | FieldTransform 비용에 사용 |
+| Stone | 고급 건설 재료           | 고급 거주지, 대장간 건설에 사용 |
+| Weapon| 병사 육성 재료           | Soldier 전직 비용 |
+| Armor | 병사 육성 재료           | Soldier 전직 비용 |
 
 ## 2. 직업(Job)
-| 이름     | 설명                     | 주요 역할                             |
-|----------|--------------------------|----------------------------------------|
-| Worker   | 범용 작업자              | 건설, 유지보수, 기본 자원 운반        |
-| Farmer   | 농장의 생산 담당         | Crop 생산 작업 수행                   |
-| Merchant | 시장 및 거래 담당        | Coin 관련 거래, 자원 교환             |
+| 이름       | 설명                        | 비고                           |
+|------------|-----------------------------|--------------------------------|
+| Worker     | 범용 작업자                 | 기본 생산/건설 담당           |
+| Farmer     | 농장 전담                    | Food 생산                      |
+| Miner      | 채석장 전담                  | Stone 생산                     |
+| WoodCutter | 목재 가공 전담               | Wood 생산                      |
+| Explorer   | 탐험 전담                    | BadLand 확보                   |
+| Soldier    | 전투 전담                    | Weapon/Armor 소비, 레벨 업     |
 
-## 3. 건물(Building)
-| 이름       | 영토 비용 | 작업 슬롯 수 | 주요 작업 예시                              | 이벤트 트리거                       |
-|------------|-----------|--------------|---------------------------------------------|------------------------------------|
-| Farm       | 2         | 2            | 농부가 Crop 생산 (`ProduceCrop`)             | 생산 완료 시 `BuildingCompleted`    |
-| Residence  | 1         | 1            | Worker가 PopulationPoint 생성 보조 (`SupportPopulation`) | 인구 성장 조건 충족 시 `PopulationGrowth` |
-| Warehouse  | 3         | 1            | Worker가 자원 저장/출고 (`ManageStorage`)   | 용량 초과 시 경고 이벤트             |
-| Market     | 2         | 1            | Merchant가 Coin/Crop 교환 (`TradeGoods`)     | 거래 성사 시 `JobAssignmentChanged` |
+### Soldier 레벨 규칙
+- 전직 시 레벨 1에서 시작한다.
+- `SoldierUpgradeTicks`마다 레벨이 1씩 증가한다.
+- 최대 레벨은 `InitConst` 데이터에 추가 예정.
 
-## 4. 작업(Task)
-| 이름              | 담당 직업 | 필요 자원                                 | 결과 자원                                   | 소요 시간(ms) |
-|-------------------|-----------|---------------------------------------------|----------------------------------------------|---------------|
-| ProduceCrop        | Farmer    | TerritoryPoint:1                            | Crop:+3                                      | 5000          |
-| SupportPopulation  | Worker    | Crop:2                                      | PopulationPoint:+1                           | 4000          |
-| ManageStorage      | Worker    | 없음                                        | 창고 상태 갱신(이벤트로 표현)                | 3000          |
-| TradeGoods         | Merchant  | Crop:1, Coin:1                              | Crop:-1, Coin:+2 (이익)                      | 6000          |
+## 3. 필드(Field)
+| 이름               | Empty | 설명                                |
+|--------------------|-------|-------------------------------------|
+| UnoccupiedField    | 예    | 미점유 지형                         |
+| BadLand            | 예    | 불모지, 탐험 이후 확보 대상         |
+| CropField          | 아니오| 식량 생산 필드                      |
+| LumberMill         | 아니오| 목재 생산 필드                      |
+| Quarry             | 아니오| 석재 생산 필드                      |
+| Residence          | 아니오| 기본 거주지                         |
+| ExplorationOffice  | 아니오| 탐험 거점                           |
+| Smithy             | 아니오| 무기/갑옷 제작                      |
 
-## 5. 인구 성장 규칙(PopulationGrowthRule)
-| 요구 포인트 | 틱당 증가량 | 부연 설명                           |
-|-------------|--------------|------------------------------------|
-| 5           | 1            | 5포인트를 모을 때마다 인구 +1       |
-| 10          | 2            | 고급 조건 달성 시 추가 성장 가속    |
+## 4. 필드 변환(FieldTransform)
+| 대상 필드       | Size | Slot | CostTicks | 자원 비용                     | 선행 조건              |
+|----------------|------|------|-----------|-------------------------------|------------------------|
+| CropField      | 1    | 1    | 20        | 없음                          | 없음                   |
+| LumberMill     | 1    | 1    | 40        | 없음                          | 없음                   |
+| Quarry         | 1    | 1    | 40        | 없음                          | 없음                   |
+| Residence      | 1    | 4    | 50        | Wood 4                        | LumberMill             |
+| ExplorationOffice| 1  | 2    | 50        | Wood 5                        | LumberMill             |
+| Residence2     | 2    | 8    | 100       | Wood 12, Stone 4              | Residence, Quarry      |
+| Smithy         | 1    | 1    | 50        | Wood 4, Stone 4               | Quarry                 |
 
-## 6. 이벤트 흐름
-| 이벤트 타입              | 발생 조건 예시                     | 주요 파라미터                          |
-|--------------------------|------------------------------------|----------------------------------------|
-| TerritoryExpansion       | 건물 건설 완료                     | `Target`: 새 건물, `IntValue`: 비용     |
-| PopulationGrowth         | PopulationPoint 누적 조건 충족     | `IntValue`: 증가 인구 수               |
-| JobAssignmentChanged     | 작업자가 새로운 작업에 배치될 때   | `Target`: 작업자, `StringValue`: 작업명 |
-| BuildingCompleted        | 건물 건설 혹은 업그레이드 완료     | `Target`: 건물, `CustomObject`: 보상    |
+## 5. 작업(Task)
+| 필드               | 이름           | 담당 직업 | Tick | 결과           |
+|--------------------|----------------|-----------|------|----------------|
+| CropField          | Harvesting     | Farmer    | 10   | Food           |
+| LumberMill         | Cutting        | WoodCutter| 30   | Wood           |
+| Quarry             | Quarring       | Miner     | 30   | Stone          |
+| Residence          | Resting        | Any       | 30   | (무결과)       |
+| ExplorationOffice  | Occupying      | Explorer  | 50   | BadLand 필드 확보 |
+| Smithy             | MakingWeapon   | (미정)    | 60   | Weapon         |
+| Smithy             | MakingArmor    | (미정)    | 60   | Armor          |
 
-## 7. 테스트 시나리오 초안
-1. 초기 상태에서 `ManualTickScheduler`로 5회 틱 호출 → 농장 작업이 Crop을 생산하는지 확인.
-2. Crop을 소비하여 PopulationPoint 획득 → 누적 5포인트 시 `PopulationGrowth` 이벤트 발생 여부 검사.
-3. 창고 저장 용량을 초과시키는 이벤트를 트리거 → 경고 이벤트가 발행되는지 확인.
-4. 시장 거래 작업 진행 → Coin 증가와 `JobAssignmentChanged` 이벤트 발생 여부 확인.
+> 추후 Requirement/Result를 복수 자원으로 확장할 때 Task 스키마에 Kind/Value 분리 필드를 도입한다.
 
-## 8. 향후 결정 사항
-- 데이터 로딩 경로(JSON, ScriptableObject 등)와 버전 관리 정책.
-- 건물/자원 상호 작용을 정의하는 추가 규칙(예: 용량, 유지비, 파손 등).
-- 이벤트 파라미터 구조 확대 필요 여부.
+## 6. 틱 운영 규칙
+- 기본 틱 간격은 100ms (`TickConfig.TickDurationMillis` 기본값).
+- 런타임에서 `TickConfig.TickDurationMillis`와 `ITickScheduler.SetTickDuration(ms)`를 통해 속도를 조절한다.
+- `FoodConsumeTicks` 주기로 모든 인구가 Food 1을 소비한다.
+- Soldier는 `SoldierUpgradeTicks` 간격마다 레벨이 1씩 상승한다.
+
+## 7. 초기화 데이터 (InitConst)
+| 항목              | 값                                  |
+|-------------------|-------------------------------------|
+| WorkerTicks        | 60                                  |
+| DestroyTicks       | 15                                  |
+| FoodConsumeTicks   | 70                                  |
+| SoldierUpgradeTicks| 120                                 |
+| InitJobs           | Soldier, Explorer, Worker x4        |
+| InitBadLandSize    | 12                                  |
+| InitFields         | ExplorationOffice, Residence x2     |
+
+## 8. 향후 과제
+1. Soldier 최대 레벨을 InitConst에 추가하고 로직과 연동한다.
+2. Smithy 작업 담당 직업 정의 및 Resting/일반 작업에 맞는 Job 매핑 규칙 설계.
+3. Task 결과 `BadLand` 변환을 일반화할 Kind/Value 구조 설계.
+4. TickScheduler 구현체에서 동적 속도 변경과 Food 소비 루틴을 연결한다.

@@ -1,3 +1,5 @@
+using System;
+
 namespace AutoWorld.Core
 {
     /// <summary>
@@ -5,6 +7,24 @@ namespace AutoWorld.Core
     /// </summary>
     public static class TickConfig
     {
-        public const int DefaultTickDurationMillis = 1000;
+        private const double MinTickDurationMillis = 1d;
+        private static double tickDurationMillis = 100d;
+
+        /// <summary>
+        /// 현재 tick 한 주기의 길이를 밀리초 단위로 제공한다.
+        /// </summary>
+        public static double TickDurationMillis
+        {
+            get => tickDurationMillis;
+            set
+            {
+                if (value < MinTickDurationMillis)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), "틱 지속시간은 1ms 이상이어야 합니다.");
+                }
+
+                tickDurationMillis = value;
+            }
+        }
     }
 }

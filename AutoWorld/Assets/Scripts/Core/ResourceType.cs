@@ -2,9 +2,10 @@ namespace AutoWorld.Core
 {
     public enum ResourceType
     {
-        PopulationPoint,
-        TerritoryPoint,
-        Crop,
-        Coin
+        Food,
+        Wood,
+        Stone,
+        Weapon,
+        Armor
     }
 }
