@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace AutoWorld.Core
@@ -8,20 +7,36 @@ namespace AutoWorld.Core
     /// </summary>
     public sealed class TaskDefinition
     {
-        public TaskDefinition(JobType job, IReadOnlyList<ResourceAmount> requirements, IReadOnlyList<ResourceAmount> results, TimeSpan duration)
+        public TaskDefinition(
+            string name,
+            JobType? job,
+            bool allowsAnyJob,
+            int durationTicks,
+            IReadOnlyList<ResourceAmount> requirements,
+            IReadOnlyList<ResourceAmount> results,
+            TaskOutcome outcome)
         {
+            Name = name;
             Job = job;
+            AllowsAnyJob = allowsAnyJob;
+            DurationTicks = durationTicks;
             Requirements = requirements;
             Results = results;
-            Duration = duration;
+            Outcome = outcome;
         }
 
-        public JobType Job { get; }
+        public string Name { get; }
+
+        public JobType? Job { get; }
+
+        public bool AllowsAnyJob { get; }
+
+        public int DurationTicks { get; }
 
         public IReadOnlyList<ResourceAmount> Requirements { get; }
 
         public IReadOnlyList<ResourceAmount> Results { get; }
 
-        public TimeSpan Duration { get; }
+        public TaskOutcome Outcome { get; }
     }
 }
