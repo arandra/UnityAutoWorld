@@ -15,9 +15,11 @@ namespace Datas.Const
         public int DestroyTicks;
         public int FoodConsumeTicks;
         public int SoldierUpgradeTicks;
-        public List<string> InitJobses = new();
+        public List<string> InitJobs = new();
         public int InitBadLandSize;
-        public List<string> InitFieldses = new();
+        public List<string> InitFields = new();
+        public int InitFood;
+        public int MillisecondPerTick;
     }
 
 #nullable restore

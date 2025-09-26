@@ -24,6 +24,16 @@ namespace AutoWorld.Core
             return obj is EventObject other && Equals(other);
         }
 
+        public static bool operator ==(EventObject left, EventObject right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(EventObject left, EventObject right)
+        {
+            return !left.Equals(right);
+        }
+
         public override int GetHashCode()
         {
             unchecked

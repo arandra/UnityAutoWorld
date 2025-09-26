@@ -17,7 +17,7 @@ MonoBehaviour:
     DestroyTicks: 15
     FoodConsumeTicks: 70
     SoldierUpgradeTicks: 120
-    InitJobses:
+    InitJobs:
     - Soldier
     - Explorer
     - Worker
@@ -25,7 +25,9 @@ MonoBehaviour:
     - Worker
     - Worker
     InitBadLandSize: 12
-    InitFieldses:
+    InitFields:
     - ExplorationOffice
     - Residence
     - Residence
+    InitFood: 50
+    MillisecondPerTick: 100
