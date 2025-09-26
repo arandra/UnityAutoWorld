@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8dabafcc508f9fd46904a915d981dcf9, type: 3}
+  m_Name: FieldTransforms
+  m_EditorClassIdentifier: Assembly-CSharp::Datas.FieldTransforms
+  Values:
+  - Name: CropField
+    Size: 1
+    Slot: 1
+    CostTicks: 20
+    CostResources: []
+    Requires: []
+  - Name: LumberMill
+    Size: 1
+    Slot: 1
+    CostTicks: 40
+    CostResources: []
+    Requires: []
+  - Name: Quarry
+    Size: 1
+    Slot: 1
+    CostTicks: 40
+    CostResources: []
+    Requires: []
+  - Name: Residence
+    Size: 1
+    Slot: 4
+    CostTicks: 50
+    CostResources:
+    - Key: Wood
+      Value: 4
+    Requires:
+    - LumberMill
+  - Name: ExplorationOffice
+    Size: 1
+    Slot: 2
+    CostTicks: 50
+    CostResources:
+    - Key: Wood
+      Value: 5
+    Requires:
+    - LumberMill
+  - Name: Residence2
+    Size: 2
+    Slot: 8
+    CostTicks: 100
+    CostResources:
+    - Key: Wood
+      Value: 12
+    - Key: Stone
+      Value: 4
+    Requires:
+    - Residence
+    - Quarry
+  - Name: Smithy
+    Size: 1
+    Slot: 1
+    CostTicks: 50
+    CostResources:
+    - Key: Wood
+      Value: 4
+    - Key: Stone
+      Value: 4
+    Requires:
+    - Quarry

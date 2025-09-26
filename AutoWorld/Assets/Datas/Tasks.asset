@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ad97f7ae9b346e4da7e8d084c36a3dc, type: 3}
+  m_Name: Tasks
+  m_EditorClassIdentifier: Assembly-CSharp::Datas.Tasks
+  Values:
+  - Field: CropField
+    Name: Harvesting
+    JobName: Farmer
+    Tick: 10
+    Result: Food
+  - Field: LumberMill
+    Name: Cutting
+    JobName: WoodCutter
+    Tick: 30
+    Result: Wood
+  - Field: Quarry
+    Name: Quarring
+    JobName: Miner
+    Tick: 30
+    Result: Stone
+  - Field: Residence
+    Name: Resting
+    JobName: Any
+    Tick: 30
+    Result: 
+  - Field: ExplorationOffice
+    Name: Occupying
+    JobName: Explorer
+    Tick: 50
+    Result: BadLand
+  - Field: Smithy
+    Name: MakingWeapon
+    JobName: 
+    Tick: 60
+    Result: Weapon
+  - Field: Smithy
+    Name: MakingArmor
+    JobName: 
+    Tick: 60
+    Result: Armor
