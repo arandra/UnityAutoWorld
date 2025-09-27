@@ -6,7 +6,13 @@ namespace AutoWorld.Core.Services
 {
     public static class CoreBootstrapper
     {
-        public static GameSession CreateGameSession(AutoWorld.Core.Data.InitConst initConst, ManualTickScheduler scheduler, IReadOnlyDictionary<FieldType, FieldDefinition> definitions, ICoreEvents coreEvents)
+        public static GameSession CreateGameSession(
+            AutoWorld.Core.Data.InitConst initConst,
+            ManualTickScheduler scheduler,
+            IReadOnlyDictionary<FieldType, FieldDefinition> definitions,
+            IReadOnlyDictionary<int, AutoWorld.Core.Data.GridMap> gridMaps,
+            IReadOnlyDictionary<JobType, IReadOnlyList<ResourceAmount>> jobCosts,
+            ICoreEvents coreEvents)
         {
             if (initConst == null)
             {
@@ -23,14 +29,31 @@ namespace AutoWorld.Core.Services
                 throw new ArgumentNullException(nameof(definitions));
             }
 
+            if (gridMaps == null)
+            {
+                throw new ArgumentNullException(nameof(gridMaps));
+            }
+
             var resourceStore = new ResourceStore();
             resourceStore.Add(ResourceType.Food, initConst.InitFood);
 
-            var population = new PopulationManager(resourceStore, coreEvents, initConst.FoodConsumeTicks, initConst.SoldierUpgradeTicks, initConst.MaxSoldierLevel);
-
             var registryService = new EventRegistryService();
 
-            var fieldManager = new FieldManager(definitions);
+            var fieldManager = new FieldManager(definitions, gridMaps);
+            fieldManager.InitializeTerritory(initConst.InitBadLandSize);
+
+            var population = new PopulationManager(
+                resourceStore,
+                fieldManager,
+                registryService,
+                coreEvents,
+                initConst.FoodConsumeTicks,
+                initConst.SoldierUpgradeTicks,
+                initConst.MaxSoldierLevel,
+                initConst.WorkerTicks,
+                initConst.TicksForRest,
+                jobCosts ?? new Dictionary<JobType, IReadOnlyList<ResourceAmount>>());
+
             InitializeFields(fieldManager, initConst.InitFields);
 
             InitializePopulation(population, initConst.InitJobs);
@@ -45,7 +68,6 @@ namespace AutoWorld.Core.Services
                 return;
             }
 
-            var nextId = 1;
             foreach (var jobName in jobNames)
             {
                 if (!Enum.TryParse(jobName, false, out JobType jobType))
@@ -53,12 +75,17 @@ namespace AutoWorld.Core.Services
                     continue;
                 }
 
-                population.AddCitizen(nextId++, jobType);
+                population.AddCitizen(jobType);
             }
         }
 
         private static void InitializeFields(FieldManager fieldManager, IList<string> fieldNames)
         {
+            if (fieldManager == null)
+            {
+                throw new ArgumentNullException(nameof(fieldManager));
+            }
+
             if (fieldNames == null)
             {
                 return;
@@ -71,7 +98,10 @@ namespace AutoWorld.Core.Services
                     continue;
                 }
 
-                fieldManager.CreateField(fieldType);
+                if (!fieldManager.TryPlaceInitialField(fieldType))
+                {
+                    throw new InvalidOperationException($"초기 필드를 배치할 수 없습니다: {fieldType}");
+                }
             }
         }
     }

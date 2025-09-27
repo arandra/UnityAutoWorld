@@ -37,6 +37,9 @@ MonoBehaviour:
   - Size: 12
     X: 4
     Y: 3
+  - Size: 15
+    X: 5
+    Y: 3
   - Size: 16
     X: 4
     Y: 4

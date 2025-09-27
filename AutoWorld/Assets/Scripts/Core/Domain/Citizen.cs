@@ -12,6 +12,8 @@ namespace AutoWorld.Core.Domain
             Identifier = identifier;
             Job = job;
             Level = job == JobType.Soldier ? 1 : 0;
+            IsAlive = true;
+            Activity = CitizenActivity.Idle;
         }
 
         public int Identifier { get; }
@@ -23,6 +25,50 @@ namespace AutoWorld.Core.Domain
         public int TicksUntilFoodConsume { get; set; }
 
         public int TicksUntilSoldierUpgrade { get; set; }
+
+        public int AwakenTicks { get; set; }
+
+        public bool NeedsRest { get; set; }
+
+        public bool IsAlive { get; private set; }
+
+        public CitizenActivity Activity { get; private set; }
+
+        public FieldState AssignedField { get; private set; }
+
+        public TaskDefinition AssignedTask { get; private set; }
+
+        public bool IsIdle => Activity == CitizenActivity.Idle;
+
+        public bool IsWorking => Activity == CitizenActivity.Working || Activity == CitizenActivity.Transforming;
+
+        public void AssignWork(FieldState field, TaskDefinition task)
+        {
+            AssignedField = field;
+            AssignedTask = task;
+            Activity = CitizenActivity.Working;
+        }
+
+        public void AssignRest(FieldState field, TaskDefinition task)
+        {
+            AssignedField = field;
+            AssignedTask = task;
+            Activity = CitizenActivity.Resting;
+        }
+
+        public void AssignTransformation(FieldState field)
+        {
+            AssignedField = field;
+            AssignedTask = null;
+            Activity = CitizenActivity.Transforming;
+        }
+
+        public void ClearAssignment()
+        {
+            AssignedField = null;
+            AssignedTask = null;
+            Activity = CitizenActivity.Idle;
+        }
 
         public bool TryPromoteTo(JobType job)
         {
@@ -56,6 +102,12 @@ namespace AutoWorld.Core.Domain
             {
                 Level += 1;
             }
+        }
+
+        public void Kill()
+        {
+            IsAlive = false;
+            ClearAssignment();
         }
     }
 }

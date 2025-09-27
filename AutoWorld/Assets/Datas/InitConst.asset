@@ -24,7 +24,7 @@ MonoBehaviour:
     - Worker
     - Worker
     - Worker
-    InitBadLandSize: 12
+    InitBadLandSize: 15
     InitFields:
     - ExplorationOffice
     - TownHall

@@ -10,6 +10,8 @@ namespace AutoWorld.Core
         Residence,
         Residence2,
         ExplorationOffice,
-        Smithy
+        Smithy,
+        TownHall,
+        Transforming
     }
 }

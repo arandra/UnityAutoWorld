@@ -24,6 +24,10 @@ namespace AutoWorld.Loading
 
         public IReadOnlyDictionary<FieldType, FieldDefinition> FieldDefinitions { get; set; }
 
+        public IReadOnlyDictionary<int, AutoWorld.Core.Data.GridMap> GridMapLookup { get; set; }
+
+        public IReadOnlyDictionary<JobType, IReadOnlyList<ResourceAmount>> JobCosts { get; set; }
+
         public ICoreEvents CoreEvents { get; set; }
 
         public GameSession GameSession { get; set; }

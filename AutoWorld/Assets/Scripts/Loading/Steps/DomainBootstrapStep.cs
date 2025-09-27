@@ -30,7 +30,13 @@ namespace AutoWorld.Loading.Steps
             }
 
             var coreEvents = context.CoreEvents ?? new NoOpCoreEvents();
-            context.GameSession = CoreBootstrapper.CreateGameSession(context.InitConstData, context.TickScheduler, context.FieldDefinitions, coreEvents);
+            context.GameSession = CoreBootstrapper.CreateGameSession(
+                context.InitConstData,
+                context.TickScheduler,
+                context.FieldDefinitions,
+                context.GridMapLookup,
+                context.JobCosts,
+                coreEvents);
             CoreRuntime.SetSession(context.GameSession);
             context.TickScheduler.SetTickDuration(context.InitConstData.MillisecondPerTick);
         }

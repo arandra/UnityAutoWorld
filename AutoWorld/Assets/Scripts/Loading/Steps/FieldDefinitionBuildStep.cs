@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using AutoWorld.Core;
 using Datas;
 using AutoWorld.Core.Data;
@@ -23,9 +22,33 @@ namespace AutoWorld.Loading.Steps
                 throw new InvalidOperationException("필드 관련 데이터가 로드되지 않았습니다.");
             }
 
-            var fieldLookup = context.FieldsAsset.Values.ToDictionary(f => f.Name, StringComparer.Ordinal);
+            var tasksByField = BuildAllTasks(context.TasksAsset);
 
             var definitions = new Dictionary<FieldType, FieldDefinition>();
+
+            foreach (var field in context.FieldsAsset.Values)
+            {
+                if (!TryParseFieldType(field.Name, out var fieldType))
+                {
+                    throw new InvalidOperationException($"FieldType 변환 실패: {field.Name}");
+                }
+
+                var tasks = tasksByField.TryGetValue(field.Name, out var taskList)
+                    ? taskList
+                    : Array.Empty<TaskDefinition>();
+
+                var definition = new FieldDefinition(
+                    fieldType,
+                    field.Empty,
+                    size: 1,
+                    slot: 0,
+                    constructionTicks: 0,
+                    constructionCosts: Array.Empty<ResourceAmount>(),
+                    requirements: Array.Empty<FieldType>(),
+                    tasks);
+
+                definitions[fieldType] = definition;
+            }
 
             foreach (var transform in context.FieldTransformsAsset.Values)
             {
@@ -34,18 +57,18 @@ namespace AutoWorld.Loading.Steps
                     throw new InvalidOperationException($"FieldType 변환 실패: {transform.Name}");
                 }
 
-                if (!fieldLookup.TryGetValue(transform.Name, out var fieldData))
+                if (!definitions.TryGetValue(fieldType, out var baseDefinition))
                 {
                     throw new InvalidOperationException($"Fields 데이터에 {transform.Name} 엔트리가 없습니다.");
                 }
 
                 var costResources = BuildResourceAmounts(transform.CostResources);
                 var requirements = BuildFieldRequirements(transform.Requires);
-                var tasks = BuildTasks(context.TasksAsset, transform.Name);
+                var tasks = baseDefinition.Tasks;
 
                 var definition = new FieldDefinition(
                     fieldType,
-                    fieldData.Empty,
+                    baseDefinition.IsEmpty,
                     transform.Size,
                     transform.Slot,
                     transform.CostTicks,
@@ -57,7 +80,97 @@ namespace AutoWorld.Loading.Steps
             }
 
             context.FieldDefinitions = definitions;
-            // TODO: gridMaps와 jobs 데이터를 활용한 추가 초기화를 연결할 수 있습니다.
+            context.GridMapLookup = BuildGridMapLookup(context.GridMapsAsset);
+            context.JobCosts = BuildJobCosts(context.JobsAsset);
+            // gridMaps와 jobs 데이터를 활용한 추가 초기화를 후속 단계에서 확장할 수 있습니다.
+        }
+
+        private static Dictionary<string, IReadOnlyList<TaskDefinition>> BuildAllTasks(Tasks tasksAsset)
+        {
+            var intermediate = new Dictionary<string, List<TaskDefinition>>(StringComparer.Ordinal);
+
+            if (tasksAsset?.Values == null)
+            {
+                return new Dictionary<string, IReadOnlyList<TaskDefinition>>(StringComparer.Ordinal);
+            }
+
+            foreach (var task in tasksAsset.Values)
+            {
+                if (!intermediate.TryGetValue(task.Field, out var list))
+                {
+                    list = new List<TaskDefinition>();
+                    intermediate[task.Field] = list;
+                }
+
+                list.Add(BuildTask(task));
+            }
+
+            var result = new Dictionary<string, IReadOnlyList<TaskDefinition>>(StringComparer.Ordinal);
+            foreach (var pair in intermediate)
+            {
+                result[pair.Key] = pair.Value;
+            }
+
+            return result;
+        }
+
+        private static IReadOnlyDictionary<int, GridMap> BuildGridMapLookup(GridMaps gridMaps)
+        {
+            var result = new Dictionary<int, GridMap>();
+
+            if (gridMaps?.Values == null)
+            {
+                return result;
+            }
+
+            foreach (var entry in gridMaps.Values)
+            {
+                if (!result.ContainsKey(entry.Size))
+                {
+                    result[entry.Size] = entry;
+                }
+            }
+
+            return result;
+        }
+
+        private static IReadOnlyDictionary<JobType, IReadOnlyList<ResourceAmount>> BuildJobCosts(Jobs jobsAsset)
+        {
+            var result = new Dictionary<JobType, IReadOnlyList<ResourceAmount>>();
+
+            if (jobsAsset?.Values == null)
+            {
+                return result;
+            }
+
+            foreach (var job in jobsAsset.Values)
+            {
+                if (!Enum.TryParse(job.Name, false, out JobType jobType))
+                {
+                    continue;
+                }
+
+                var costs = BuildResourceAmounts(job.CostResources);
+                result[jobType] = costs;
+            }
+
+            return result;
+        }
+
+        private static TaskDefinition BuildTask(Core.Data.Task task)
+        {
+            var jobParse = ParseJob(task.JobName);
+            var results = BuildResultAmounts(task.Result);
+            var outcome = BuildOutcome(task.Result);
+
+            return new TaskDefinition(
+                task.Name,
+                jobParse.Job,
+                jobParse.AllowsAny,
+                task.Tick,
+                Array.Empty<ResourceAmount>(),
+                results,
+                outcome);
         }
 
         private static IReadOnlyList<ResourceAmount> BuildResourceAmounts(IEnumerable<Pair<string, int>> pairs)
@@ -97,33 +210,6 @@ namespace AutoWorld.Loading.Steps
                 }
 
                 list.Add(fieldType);
-            }
-
-            return list;
-        }
-
-        private static IReadOnlyList<TaskDefinition> BuildTasks(Tasks tasksAsset, string fieldName)
-        {
-            if (tasksAsset?.Values == null)
-            {
-                return Array.Empty<TaskDefinition>();
-            }
-
-            var list = new List<TaskDefinition>();
-            foreach (var task in tasksAsset.Values.Where(t => string.Equals(t.Field, fieldName, StringComparison.Ordinal)))
-            {
-                var jobParse = ParseJob(task.JobName);
-                var results = BuildResultAmounts(task.Result);
-                var outcome = BuildOutcome(task.Result);
-
-                list.Add(new TaskDefinition(
-                    task.Name,
-                    jobParse.Job,
-                    jobParse.AllowsAny,
-                    task.Tick,
-                    Array.Empty<ResourceAmount>(),
-                    results,
-                    outcome));
             }
 
             return list;

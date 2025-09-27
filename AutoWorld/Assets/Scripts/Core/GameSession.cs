@@ -31,5 +31,20 @@ namespace AutoWorld.Core
         {
             return Scheduler.AdvanceTick();
         }
+
+        public bool RequestFieldTransformation(FieldType targetType)
+        {
+            return Population.RequestFieldTransformation(targetType);
+        }
+
+        public bool IncreaseJob(JobType job)
+        {
+            return Population.TryIncreaseJob(job);
+        }
+
+        public bool DecreaseJob(JobType job)
+        {
+            return Population.TryDecreaseJob(job);
+        }
     }
 }

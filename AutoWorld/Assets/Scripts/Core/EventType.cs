@@ -6,6 +6,19 @@ namespace AutoWorld.Core
         TerritoryExpansion,
         PopulationGrowth,
         JobAssignmentChanged,
-        BuildingCompleted
+        BuildingCompleted,
+        PopulationGrowthPaused,
+        PopulationGrowthResumed,
+        JobChangeFailed,
+        FieldTransformationStarted,
+        FieldTransformationCompleted,
+        FieldTransformationFailed,
+        TaskStarted,
+        TaskCompleted,
+        TaskInterrupted,
+        RestStarted,
+        RestCompleted,
+        CitizenDied,
+        TerritoryExpansionFailed
     }
 }
