@@ -53,6 +53,21 @@ namespace AutoWorld.Core.Domain
             return definition;
         }
 
+        public int GetFieldCount(FieldType type)
+        {
+            var count = 0;
+            for (var i = 0; i < fields.Count; i++)
+            {
+                var field = fields[i];
+                if (field?.Definition?.Type == type)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
         public int GetTotalHousingCapacity()
         {
             var capacity = 0;

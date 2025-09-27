@@ -93,6 +93,11 @@ namespace AutoWorld.Core.Domain
             return citizen;
         }
 
+        public int GetJobCount(JobType job)
+        {
+            return citizensByJob.TryGetValue(job, out var collection) ? collection.Count : 0;
+        }
+
         public void OnTick(TickContext context)
         {
             AdvancePopulationGrowth();

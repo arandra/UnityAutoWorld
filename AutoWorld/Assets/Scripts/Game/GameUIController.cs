@@ -17,11 +17,15 @@ namespace AutoWorld.Game
         {
             public MenuNode(string title)
             {
-                Title = title;
+                staticTitle = title ?? string.Empty;
                 Children = new List<MenuNode>();
             }
 
-            public string Title { get; }
+            private readonly string staticTitle;
+
+            public Func<string> TitleProvider { get; set; }
+
+            public string Title => TitleProvider != null ? TitleProvider() : staticTitle;
 
             public MenuNode Parent { get; private set; }
 
@@ -192,7 +196,10 @@ namespace AutoWorld.Game
                     continue;
                 }
 
-                var jobNode = new MenuNode(job.ToString());
+                var jobNode = new MenuNode(job.ToString())
+                {
+                    TitleProvider = () => GetJobLabel(job)
+                };
                 jobNode.AddChild(new MenuNode("증가") { OnSelected = () => RequestJobChange(job, true) });
                 jobNode.AddChild(new MenuNode("감소") { OnSelected = () => RequestJobChange(job, false) });
                 jobRoot.AddChild(jobNode);
@@ -208,7 +215,10 @@ namespace AutoWorld.Game
                     continue;
                 }
 
-                var fieldNode = new MenuNode(GetFieldLabel(fieldType));
+                var fieldNode = new MenuNode(fieldType.ToString())
+                {
+                    TitleProvider = () => GetFieldLabel(fieldType)
+                };
                 fieldNode.AddChild(new MenuNode("생성") { OnSelected = () => RequestFieldCreation(fieldType) });
                 fieldNode.AddChild(new MenuNode("파괴") { OnSelected = () => RequestFieldRemoval(fieldType) });
                 fieldRoot.AddChild(fieldNode);
@@ -393,9 +403,16 @@ namespace AutoWorld.Game
             }
         }
 
+        private string GetJobLabel(JobType job)
+        {
+            var count = session?.Population?.GetJobCount(job) ?? 0;
+            return $"{job} ({count})";
+        }
+
         private string GetFieldLabel(FieldType fieldType)
         {
-            return fieldType.ToString();
+            var count = session?.Fields?.GetFieldCount(fieldType) ?? 0;
+            return $"{fieldType} ({count})";
         }
 
         private void AddSystemMessage(string message)
