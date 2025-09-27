@@ -9,6 +9,8 @@ namespace AutoWorld.Core
         BuildingCompleted,
         PopulationGrowthPaused,
         PopulationGrowthResumed,
+        CitizenFoodConsumed,
+        CitizenFoodShortage,
         JobChangeFailed,
         FieldTransformationStarted,
         FieldTransformationCompleted,
@@ -19,6 +21,7 @@ namespace AutoWorld.Core
         RestStarted,
         RestCompleted,
         CitizenDied,
+        SoldierLevelUpgraded,
         TerritoryExpansionFailed
     }
 }

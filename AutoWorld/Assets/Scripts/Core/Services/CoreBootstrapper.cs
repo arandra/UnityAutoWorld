@@ -11,8 +11,7 @@ namespace AutoWorld.Core.Services
             ManualTickScheduler scheduler,
             IReadOnlyDictionary<FieldType, FieldDefinition> definitions,
             IReadOnlyDictionary<int, AutoWorld.Core.Data.GridMap> gridMaps,
-            IReadOnlyDictionary<JobType, IReadOnlyList<ResourceAmount>> jobCosts,
-            ICoreEvents coreEvents)
+            IReadOnlyDictionary<JobType, IReadOnlyList<ResourceAmount>> jobCosts)
         {
             if (initConst == null)
             {
@@ -46,7 +45,6 @@ namespace AutoWorld.Core.Services
                 resourceStore,
                 fieldManager,
                 registryService,
-                coreEvents,
                 initConst.FoodConsumeTicks,
                 initConst.SoldierUpgradeTicks,
                 initConst.MaxSoldierLevel,

@@ -7,111 +7,113 @@ namespace AutoWorld.Core
     {
         private static readonly Lazy<EventManager> sharedInstance = new Lazy<EventManager>(() => new EventManager());
 
-        private readonly Dictionary<EventType, HashSet<EventObject>> registrations = new Dictionary<EventType, HashSet<EventObject>>();
-
-        private EventManager()
-        {
-            Registry = new EventObjectRegistry();
-        }
+        private readonly Dictionary<EventType, HashSet<IEventListener>> listenersByEvent = new Dictionary<EventType, HashSet<IEventListener>>();
+        private readonly HashSet<IEventListener> globalListeners = new HashSet<IEventListener>();
 
         public static EventManager Instance => sharedInstance.Value;
 
-        public EventObjectRegistry Registry { get; }
-
-        public void RegisterParticipant(IEventParticipant participant)
-        {
-            Registry.Register(participant);
-        }
-
-        public bool UnregisterParticipant(EventObject identifier)
-        {
-            RemoveFromRegistrations(identifier);
-            return Registry.Unregister(identifier);
-        }
-
-        public void Register(EventType eventType, EventObject registeredObject)
+        public void Register(EventType eventType, IEventListener listener)
         {
             if (eventType == EventType.None)
             {
                 throw new ArgumentException("유효한 이벤트 타입이 필요합니다.", nameof(eventType));
             }
 
-            if (!Registry.Contains(registeredObject))
+            if (listener == null)
             {
-                throw new InvalidOperationException($"이벤트 객체가 레지스트리에 존재하지 않습니다: {registeredObject}");
+                throw new ArgumentNullException(nameof(listener));
             }
 
-            if (!registrations.TryGetValue(eventType, out var collection))
+            if (!listenersByEvent.TryGetValue(eventType, out var collection))
             {
-                collection = new HashSet<EventObject>();
-                registrations[eventType] = collection;
+                collection = new HashSet<IEventListener>();
+                listenersByEvent[eventType] = collection;
             }
 
-            collection.Add(registeredObject);
+            collection.Add(listener);
         }
 
-        public bool Unregister(EventType eventType, EventObject registeredObject)
+        public void RegisterAll(IEventListener listener)
         {
-            if (!registrations.TryGetValue(eventType, out var collection))
+            if (listener == null)
+            {
+                throw new ArgumentNullException(nameof(listener));
+            }
+
+            globalListeners.Add(listener);
+        }
+
+        public bool Unregister(EventType eventType, IEventListener listener)
+        {
+            if (listener == null)
             {
                 return false;
             }
 
-            var removed = collection.Remove(registeredObject);
-            if (collection.Count == 0)
+            if (!listenersByEvent.TryGetValue(eventType, out var collection))
             {
-                registrations.Remove(eventType);
+                return false;
+            }
+
+            var removed = collection.Remove(listener);
+            if (removed && collection.Count == 0)
+            {
+                listenersByEvent.Remove(eventType);
             }
 
             return removed;
         }
 
-        public void Invoke(EventType eventType, EventObject source, EventParameter parameter)
+        public bool UnregisterAll(IEventListener listener)
         {
-            if (!registrations.TryGetValue(eventType, out var collection))
+            return globalListeners.Remove(listener);
+        }
+
+        public void Unregister(IEventListener listener)
+        {
+            if (listener == null)
             {
                 return;
             }
 
-            var targets = new List<EventObject>(collection);
-            foreach (var target in targets)
+            globalListeners.Remove(listener);
+
+            var emptyKeys = new List<EventType>();
+            foreach (var pair in listenersByEvent)
             {
-                if (parameter.Target.HasValue && target != parameter.Target.Value)
+                pair.Value.Remove(listener);
+                if (pair.Value.Count == 0)
                 {
-                    continue;
+                    emptyKeys.Add(pair.Key);
                 }
+            }
 
-                if (parameter.TargetTypes != EventObjectType.None && (parameter.TargetTypes & target.Type) == 0)
-                {
-                    continue;
-                }
-
-                if (!Registry.TryGet(target, out var participant))
-                {
-                    continue;
-                }
-
-                if (participant is IEventListener listener)
-                {
-                    listener.OnEvent(eventType, source, parameter);
-                }
+            for (var i = 0; i < emptyKeys.Count; i++)
+            {
+                listenersByEvent.Remove(emptyKeys[i]);
             }
         }
 
-        private void RemoveFromRegistrations(EventObject identifier)
+        public void Invoke(EventType eventType, EventObject source, EventParameter parameter)
         {
-            var emptyEventTypes = new List<EventType>();
-            foreach (var pair in registrations)
+            var dispatchSet = new HashSet<IEventListener>();
+
+            if (listenersByEvent.TryGetValue(eventType, out var specificListeners))
             {
-                if (pair.Value.Remove(identifier) && pair.Value.Count == 0)
+                foreach (var listener in specificListeners)
                 {
-                    emptyEventTypes.Add(pair.Key);
+                    dispatchSet.Add(listener);
                 }
             }
 
-            foreach (var eventType in emptyEventTypes)
+            foreach (var listener in globalListeners)
             {
-                registrations.Remove(eventType);
+                dispatchSet.Add(listener);
+            }
+
+            foreach (var listener in dispatchSet)
+            {
+                listener?.OnEvent(eventType, source, parameter);
             }
         }
     }

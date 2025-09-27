@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using AutoWorld.Core;
 using AutoWorld.Core.Domain;
 using UnityEngine;
-using System;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -65,16 +64,12 @@ namespace AutoWorld.Game
 
         private readonly List<GameObject> messageItems = new List<GameObject>();
         private readonly List<GameObject> optionItems = new List<GameObject>();
-        private readonly List<EventType> subscribedEventTypes = new List<EventType>();
 
         private GameSession session;
-        private EventObject eventIdentifier;
         private bool isRegistered;
         private MenuNode rootNode;
         private MenuNode currentNode;
         private float statusTimer;
-
-        public EventObject EventObject => eventIdentifier;
 
         private void Awake()
         {
@@ -144,20 +139,7 @@ namespace AutoWorld.Game
                 return;
             }
 
-            eventIdentifier = session.Registry.CreateIdentifier(EventObjectType.Manager);
-            session.Registry.Register(this);
-            EventManager.Instance.RegisterParticipant(this);
-
-            foreach (EventType eventType in Enum.GetValues(typeof(EventType)))
-            {
-                if (eventType == EventType.None)
-                {
-                    continue;
-                }
-
-                EventManager.Instance.Register(eventType, eventIdentifier);
-                subscribedEventTypes.Add(eventType);
-            }
+            EventManager.Instance.RegisterAll(this);
 
             isRegistered = true;
         }
@@ -169,17 +151,8 @@ namespace AutoWorld.Game
                 return;
             }
 
-            foreach (var eventType in subscribedEventTypes)
-            {
-                EventManager.Instance.Unregister(eventType, eventIdentifier);
-            }
-
-            subscribedEventTypes.Clear();
-            session?.Registry.Unregister(eventIdentifier);
-            if (eventIdentifier.Type != EventObjectType.None)
-            {
-                EventManager.Instance.UnregisterParticipant(eventIdentifier);
-            }
+            EventManager.Instance.UnregisterAll(this);
+            EventManager.Instance.Unregister(this);
 
             isRegistered = false;
         }

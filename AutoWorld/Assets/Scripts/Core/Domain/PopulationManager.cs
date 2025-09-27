@@ -18,7 +18,6 @@ namespace AutoWorld.Core.Domain
         private readonly FieldManager fieldManager;
         private readonly EventRegistryService eventRegistry;
         private readonly IReadOnlyDictionary<JobType, IReadOnlyList<ResourceAmount>> jobCosts;
-        private readonly ICoreEvents coreEvents;
         private readonly int foodConsumeTicks;
         private readonly int soldierUpgradeTicks;
         private readonly int maxSoldierLevel;
@@ -35,7 +34,6 @@ namespace AutoWorld.Core.Domain
             ResourceStore resourceStore,
             FieldManager fieldManager,
             EventRegistryService eventRegistry,
-            ICoreEvents coreEvents,
             int foodConsumeTicks,
             int soldierUpgradeTicks,
             int maxSoldierLevel,
@@ -47,7 +45,6 @@ namespace AutoWorld.Core.Domain
             this.fieldManager = fieldManager ?? throw new ArgumentNullException(nameof(fieldManager));
             this.eventRegistry = eventRegistry ?? throw new ArgumentNullException(nameof(eventRegistry));
             this.jobCosts = jobCosts ?? new Dictionary<JobType, IReadOnlyList<ResourceAmount>>();
-            this.coreEvents = coreEvents;
             this.foodConsumeTicks = Math.Max(1, foodConsumeTicks);
             this.soldierUpgradeTicks = Math.Max(1, soldierUpgradeTicks);
             this.maxSoldierLevel = Math.Max(1, maxSoldierLevel);
@@ -89,7 +86,7 @@ namespace AutoWorld.Core.Domain
             citizens.Add(citizen);
             citizensByJob[citizen.Job].Add(citizen);
             citizenLookup[citizen.Identifier] = citizen;
-            citizenEventObjects[citizen.Identifier] = eventRegistry.CreateIdentifier(EventObjectType.Worker);
+            citizenEventObjects[citizen.Identifier] = eventRegistry.CreateIdentifier(EventObjectType.Citizen);
             return citizen;
         }
 
@@ -150,12 +147,12 @@ namespace AutoWorld.Core.Domain
                     if (resourceStore.TryConsume(ResourceType.Food, 1))
                     {
                         citizen.TicksUntilFoodConsume = foodConsumeTicks;
-                        coreEvents?.OnFoodConsumed(citizen.Identifier);
+                        RaiseCitizenEvent(EventType.CitizenFoodConsumed, citizen);
                     }
                     else
                     {
                         citizen.TicksUntilFoodConsume = foodConsumeTicks;
-                        coreEvents?.OnFoodShortage(citizen.Identifier);
+                        RaiseCitizenEvent(EventType.CitizenFoodShortage, citizen);
                         HandleCitizenDeath(i, citizen, "FoodShortage");
                         continue;
                     }
@@ -171,7 +168,7 @@ namespace AutoWorld.Core.Domain
                         citizen.TicksUntilSoldierUpgrade = soldierUpgradeTicks;
                         if (citizen.Level != previousLevel)
                         {
-                            coreEvents?.OnSoldierLevelUp(citizen.Identifier, citizen.Level);
+                            RaiseCitizenEvent(EventType.SoldierLevelUpgraded, citizen, null, citizen.Level);
                         }
                     }
                 }
@@ -516,7 +513,7 @@ namespace AutoWorld.Core.Domain
             {
                 IntValue = intValue != 0 ? intValue : citizen?.Identifier ?? 0,
                 StringValue = message ?? string.Empty,
-                TargetTypes = citizen != null ? EventObjectType.Worker : EventObjectType.None
+                TargetTypes = citizen != null ? EventObjectType.Citizen : EventObjectType.None
             };
 
             if (citizen != null)

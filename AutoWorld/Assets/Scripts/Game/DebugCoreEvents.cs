@@ -1,23 +1,48 @@
 using AutoWorld.Core;
 using UnityEngine;
+using EventType = AutoWorld.Core.EventType;
 
 namespace AutoWorld.Game
 {
-    public sealed class DebugCoreEvents : MonoBehaviour, ICoreEvents
+    public sealed class DebugCoreEvents : MonoBehaviour, IEventListener
     {
-        public void OnFoodConsumed(int citizenId)
+        private static readonly EventType[] ObservedEvents =
         {
-            Debug.Log($"Food consumed by citizen {citizenId}");
+            EventType.CitizenFoodConsumed,
+            EventType.CitizenFoodShortage,
+            EventType.SoldierLevelUpgraded
+        };
+
+        private void OnEnable()
+        {
+            foreach (var eventType in ObservedEvents)
+            {
+                EventManager.Instance.Register(eventType, this);
+            }
         }
 
-        public void OnFoodShortage(int citizenId)
+        private void OnDisable()
         {
-            Debug.LogWarning($"Food shortage for citizen {citizenId}");
+            foreach (var eventType in ObservedEvents)
+            {
+                EventManager.Instance.Unregister(eventType, this);
+            }
         }
 
-        public void OnSoldierLevelUp(int citizenId, int level)
+        public void OnEvent(EventType eventType, EventObject source, EventParameter parameter)
         {
-            Debug.Log($"Soldier {citizenId} level up to {level}");
+            switch (eventType)
+            {
+                case EventType.CitizenFoodConsumed:
+                    Debug.Log($"Food consumed by citizen {parameter.IntValue}");
+                    break;
+                case EventType.CitizenFoodShortage:
+                    Debug.LogWarning($"Food shortage for citizen {parameter.IntValue}");
+                    break;
+                case EventType.SoldierLevelUpgraded:
+                    Debug.Log($"Soldier {parameter.Target?.Id ?? parameter.IntValue} level up to {parameter.IntValue}");
+                    break;
+            }
         }
     }
 }

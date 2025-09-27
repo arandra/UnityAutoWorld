@@ -6,15 +6,6 @@ namespace AutoWorld.Loading.Steps
 {
     public sealed class DomainBootstrapStep : ILoadStep
     {
-        private sealed class NoOpCoreEvents : ICoreEvents
-        {
-            public void OnFoodConsumed(int citizenId) { }
-
-            public void OnFoodShortage(int citizenId) { }
-
-            public void OnSoldierLevelUp(int citizenId, int level) { }
-        }
-
         public string Description => "도메인 부트스트랩";
 
         public void Run(LoadingContext context)
@@ -29,14 +20,12 @@ namespace AutoWorld.Loading.Steps
                 throw new InvalidOperationException("필수 초기화 항목이 준비되지 않았습니다.");
             }
 
-            var coreEvents = context.CoreEvents ?? new NoOpCoreEvents();
             context.GameSession = CoreBootstrapper.CreateGameSession(
                 context.InitConstData,
                 context.TickScheduler,
                 context.FieldDefinitions,
                 context.GridMapLookup,
-                context.JobCosts,
-                coreEvents);
+                context.JobCosts);
             CoreRuntime.SetSession(context.GameSession);
             context.TickScheduler.SetTickDuration(context.InitConstData.MillisecondPerTick);
         }

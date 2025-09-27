@@ -28,8 +28,6 @@ namespace AutoWorld.Loading
 
         public IReadOnlyDictionary<JobType, IReadOnlyList<ResourceAmount>> JobCosts { get; set; }
 
-        public ICoreEvents CoreEvents { get; set; }
-
         public GameSession GameSession { get; set; }
 
         public bool IsReady => InitConstData != null && TickScheduler != null && FieldDefinitions != null;

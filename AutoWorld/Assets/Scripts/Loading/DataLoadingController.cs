@@ -15,7 +15,6 @@ namespace AutoWorld.Loading
         [SerializeField] private Jobs jobsAsset;
         [SerializeField] private Tasks tasksAsset;
         [SerializeField] private string nextSceneName = "Game";
-        [SerializeField] private MonoBehaviour coreEventsProvider;
 
         private void Start()
         {
@@ -26,8 +25,7 @@ namespace AutoWorld.Loading
                 FieldTransformsAsset = fieldTransformsAsset,
                 GridMapsAsset = gridMapsAsset,
                 JobsAsset = jobsAsset,
-                TasksAsset = tasksAsset,
-                CoreEvents = ResolveCoreEvents()
+                TasksAsset = tasksAsset
             };
 
             var steps = new List<ILoadStep>
@@ -43,14 +41,5 @@ namespace AutoWorld.Loading
             pipeline.Run(context);
         }
 
-        private ICoreEvents ResolveCoreEvents()
-        {
-            if (coreEventsProvider is ICoreEvents coreEvents)
-            {
-                return coreEvents;
-            }
-
-            return null;
-        }
     }
 }

@@ -4,8 +4,7 @@
 - 구성요소
   1. event object type enum
     * Manager
-    * Worker
-    * Building
+    * Citizen
     * Field
   2. event type enum : 각 이벤트 마다 추가 될 예정.
   3. event manager : 이벤트를 처리하는 싱글턴 매니저.
@@ -21,5 +20,6 @@
       = object? customObject = null
     * 여기서 target은 이벤트를 받는 인스턴스가 아니라, source가 event를 행할 때 바라보는 대상.
 - 이벤트 등록
-  1. eventManager.Register(EventType eventType, EventObject registeredObject)
+  1. eventManager.Register(EventType eventType, IEventListener listener)
+  2. eventManager.RegisterAll(IEventListener listener)
 
