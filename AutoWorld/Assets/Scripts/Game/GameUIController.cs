@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using AutoWorld.Core;
 using AutoWorld.Core.Domain;
 using UnityEngine;
+using System;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using EventType = AutoWorld.Core.EventType;
 
@@ -410,6 +412,8 @@ namespace AutoWorld.Game
 
             Debug.Log($"[GameUI] {message}");
 
+            var stickToBottom = messageScroll == null || messageScroll.verticalNormalizedPosition <= 0.001f;
+
             var item = Instantiate(messageTemplate, messageContent);
             var cloneObject = item.gameObject;
             cloneObject.SetActive(true);
@@ -440,7 +444,10 @@ namespace AutoWorld.Game
             if (messageScroll != null)
             {
                 messageScroll.StopMovement();
-                messageScroll.verticalNormalizedPosition = 1f;
+                if (stickToBottom)
+                {
+                    messageScroll.verticalNormalizedPosition = 0f;
+                }
             }
         }
 
@@ -473,6 +480,12 @@ namespace AutoWorld.Game
             if (label != null)
             {
                 label.text = node.Title;
+            }
+
+            var rect = button.GetComponent<RectTransform>();
+            if (rect != null)
+            {
+                rect.sizeDelta = new Vector2(240f, 44f);
             }
 
             optionItems.Add(button.gameObject);
@@ -630,12 +643,7 @@ namespace AutoWorld.Game
 
             var eventSystemObject = new GameObject("EventSystem", typeof(EventSystem));
             eventSystemObject.transform.SetParent(transform, false);
-
-#if ENABLE_INPUT_SYSTEM
             eventSystemObject.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
-#else
-            eventSystemObject.AddComponent<StandaloneInputModule>();
-#endif
         }
 
         private void EnsureMainCamera()
