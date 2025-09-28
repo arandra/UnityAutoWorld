@@ -1,4 +1,5 @@
 using AutoWorld.Core;
+using System.Collections.Generic;
 
 namespace AutoWorld.Core.Domain
 {
@@ -38,9 +39,42 @@ namespace AutoWorld.Core.Domain
 
         public TaskDefinition AssignedTask { get; private set; }
 
+        public List<string> States { get; } = new List<string>();
+
         public bool IsIdle => Activity == CitizenActivity.Idle;
 
         public bool IsWorking => Activity == CitizenActivity.Working || Activity == CitizenActivity.Transforming;
+
+        public bool HasState(string state)
+        {
+            if (string.IsNullOrWhiteSpace(state))
+            {
+                return false;
+            }
+
+            return States.Contains(state);
+        }
+
+        public bool AddState(string state)
+        {
+            if (string.IsNullOrWhiteSpace(state) || States.Contains(state))
+            {
+                return false;
+            }
+
+            States.Add(state);
+            return true;
+        }
+
+        public bool RemoveState(string state)
+        {
+            if (string.IsNullOrWhiteSpace(state))
+            {
+                return false;
+            }
+
+            return States.Remove(state);
+        }
 
         public void AssignWork(FieldState field, TaskDefinition task)
         {

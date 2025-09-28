@@ -7,16 +7,16 @@ namespace AutoWorld.Core
     {
         private static readonly Lazy<EventManager> sharedInstance = new Lazy<EventManager>(() => new EventManager());
 
-        private readonly Dictionary<EventType, HashSet<IEventListener>> listenersByEvent = new Dictionary<EventType, HashSet<IEventListener>>();
+        private readonly Dictionary<string, HashSet<IEventListener>> listenersByEvent = new Dictionary<string, HashSet<IEventListener>>(StringComparer.Ordinal);
         private readonly HashSet<IEventListener> globalListeners = new HashSet<IEventListener>();
 
         public static EventManager Instance => sharedInstance.Value;
 
-        public void Register(EventType eventType, IEventListener listener)
+        public void Register(string eventName, IEventListener listener)
         {
-            if (eventType == EventType.None)
+            if (string.IsNullOrWhiteSpace(eventName))
             {
-                throw new ArgumentException("유효한 이벤트 타입이 필요합니다.", nameof(eventType));
+                throw new ArgumentException("이벤트 이름이 필요합니다.", nameof(eventName));
             }
 
             if (listener == null)
@@ -24,10 +24,11 @@ namespace AutoWorld.Core
                 throw new ArgumentNullException(nameof(listener));
             }
 
-            if (!listenersByEvent.TryGetValue(eventType, out var collection))
+            var key = eventName.Trim();
+            if (!listenersByEvent.TryGetValue(key, out var collection))
             {
                 collection = new HashSet<IEventListener>();
-                listenersByEvent[eventType] = collection;
+                listenersByEvent[key] = collection;
             }
 
             collection.Add(listener);
@@ -43,14 +44,15 @@ namespace AutoWorld.Core
             globalListeners.Add(listener);
         }
 
-        public bool Unregister(EventType eventType, IEventListener listener)
+        public bool Unregister(string eventName, IEventListener listener)
         {
-            if (listener == null)
+            if (string.IsNullOrWhiteSpace(eventName) || listener == null)
             {
                 return false;
             }
 
-            if (!listenersByEvent.TryGetValue(eventType, out var collection))
+            var key = eventName.Trim();
+            if (!listenersByEvent.TryGetValue(key, out var collection))
             {
                 return false;
             }
@@ -58,7 +60,7 @@ namespace AutoWorld.Core
             var removed = collection.Remove(listener);
             if (removed && collection.Count == 0)
             {
-                listenersByEvent.Remove(eventType);
+                listenersByEvent.Remove(key);
             }
 
             return removed;
@@ -66,7 +68,7 @@ namespace AutoWorld.Core
 
         public bool UnregisterAll(IEventListener listener)
         {
-            return globalListeners.Remove(listener);
+            return listener != null && globalListeners.Remove(listener);
         }
 
         public void Unregister(IEventListener listener)
@@ -78,7 +80,7 @@ namespace AutoWorld.Core
 
             globalListeners.Remove(listener);
 
-            var emptyKeys = new List<EventType>();
+            var emptyKeys = new List<string>();
             foreach (var pair in listenersByEvent)
             {
                 pair.Value.Remove(listener);
@@ -94,11 +96,17 @@ namespace AutoWorld.Core
             }
         }
 
-        public void Invoke(EventType eventType, EventObject source, EventParameter parameter)
+        public void Invoke(string eventName, EventObject source, EventParameter parameter)
         {
+            if (string.IsNullOrWhiteSpace(eventName))
+            {
+                throw new ArgumentException("이벤트 이름이 필요합니다.", nameof(eventName));
+            }
+
+            var key = eventName.Trim();
             var dispatchSet = new HashSet<IEventListener>();
 
-            if (listenersByEvent.TryGetValue(eventType, out var specificListeners))
+            if (listenersByEvent.TryGetValue(key, out var specificListeners))
             {
                 foreach (var listener in specificListeners)
                 {
@@ -113,7 +121,7 @@ namespace AutoWorld.Core
 
             foreach (var listener in dispatchSet)
             {
-                listener?.OnEvent(eventType, source, parameter);
+                listener?.OnEvent(key, source, parameter);
             }
         }
     }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AutoWorld.Core;
+using AutoWorld.Core.Data;
 using AutoWorld.Core.Services;
 
 namespace AutoWorld.Core.Domain
@@ -8,16 +9,19 @@ namespace AutoWorld.Core.Domain
     /// <summary>
     /// 주민 리스트를 관리하며 먹이 소비와 직업별 로직을 처리한다.
     /// </summary>
-    public sealed class PopulationManager : ITickListener
+    public sealed class CitizenManager : ITickListener, IEventListener
     {
         private readonly List<Citizen> citizens = new List<Citizen>();
         private readonly Dictionary<int, Citizen> citizenLookup = new Dictionary<int, Citizen>();
         private readonly Dictionary<JobType, HashSet<Citizen>> citizensByJob = new Dictionary<JobType, HashSet<Citizen>>();
         private readonly Dictionary<JobType, int> jobFieldCursor = new Dictionary<JobType, int>();
-        private readonly ResourceStore resourceStore;
+        private readonly ResourceManager resourceManager;
         private readonly FieldManager fieldManager;
         private readonly EventRegistryService eventRegistry;
         private readonly IReadOnlyDictionary<JobType, IReadOnlyList<ResourceAmount>> jobCosts;
+        private readonly Dictionary<string, List<EventAction>> actionsByEvent = new Dictionary<string, List<EventAction>>(StringComparer.Ordinal);
+        private readonly HashSet<string> registeredEvents = new HashSet<string>(StringComparer.Ordinal);
+        private readonly List<PendingAction> deferredActions = new List<PendingAction>();
         private readonly int foodConsumeTicks;
         private readonly int soldierUpgradeTicks;
         private readonly int maxSoldierLevel;
@@ -27,11 +31,32 @@ namespace AutoWorld.Core.Domain
         private bool populationGrowthPaused;
         private int nextCitizenIdentifier = 1;
         private readonly Dictionary<int, EventObject> citizenEventObjects = new Dictionary<int, EventObject>();
+        private readonly Dictionary<int, int> citizenIdByEventObjectId = new Dictionary<int, int>();
         private readonly EventObject managerEventObject;
         private readonly Dictionary<int, FieldTransformation> transformationByCitizen = new Dictionary<int, FieldTransformation>();
+        private const int JobChangeFailureMissingWorker = 1;
+        private const int JobChangeFailureInsufficientResource = 2;
+        private const int JobChangeFailureNoCitizen = 3;
+        private const string TiredState = "Tired";
 
-        public PopulationManager(
-            ResourceStore resourceStore,
+        private readonly struct PendingAction
+        {
+            public PendingAction(EventAction action, EventObject source, EventParameter parameter)
+            {
+                Action = action;
+                Source = source;
+                Parameter = parameter;
+            }
+
+            public EventAction Action { get; }
+
+            public EventObject Source { get; }
+
+            public EventParameter Parameter { get; }
+        }
+
+        public CitizenManager(
+            ResourceManager resourceManager,
             FieldManager fieldManager,
             EventRegistryService eventRegistry,
             int foodConsumeTicks,
@@ -41,7 +66,7 @@ namespace AutoWorld.Core.Domain
             int ticksForRest,
             IReadOnlyDictionary<JobType, IReadOnlyList<ResourceAmount>> jobCosts)
         {
-            this.resourceStore = resourceStore ?? throw new ArgumentNullException(nameof(resourceStore));
+            this.resourceManager = resourceManager ?? throw new ArgumentNullException(nameof(resourceManager));
             this.fieldManager = fieldManager ?? throw new ArgumentNullException(nameof(fieldManager));
             this.eventRegistry = eventRegistry ?? throw new ArgumentNullException(nameof(eventRegistry));
             this.jobCosts = jobCosts ?? new Dictionary<JobType, IReadOnlyList<ResourceAmount>>();
@@ -67,11 +92,61 @@ namespace AutoWorld.Core.Domain
             }
         }
 
+        public void ConfigureEventActions(IEnumerable<EventAction> eventActions)
+        {
+            if (eventActions == null)
+            {
+                return;
+            }
+
+            foreach (var action in eventActions)
+            {
+                if (action == null)
+                {
+                    continue;
+                }
+
+                if (!string.Equals(action.EventListener, nameof(CitizenManager), StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (!actionsByEvent.TryGetValue(action.EventName, out var list))
+                {
+                    list = new List<EventAction>();
+                    actionsByEvent[action.EventName] = list;
+                }
+
+                list.Add(action);
+
+                if (registeredEvents.Add(action.EventName))
+                {
+                    EventManager.Instance.Register(action.EventName, this);
+                }
+            }
+        }
+
         public IReadOnlyList<Citizen> Citizens => citizens;
 
         private EventObject GetCitizenEventObject(int citizenId)
         {
             return citizenEventObjects.TryGetValue(citizenId, out var identifier) ? identifier : default;
+        }
+
+        private bool TryGetCitizen(EventObject eventObject, out Citizen citizen)
+        {
+            citizen = null;
+            if (eventObject.Type != EventObjectType.Citizen)
+            {
+                return false;
+            }
+
+            if (!citizenIdByEventObjectId.TryGetValue(eventObject.Id, out var citizenId))
+            {
+                return false;
+            }
+
+            return citizenLookup.TryGetValue(citizenId, out citizen);
         }
 
         public Citizen AddCitizen(JobType job)
@@ -86,7 +161,10 @@ namespace AutoWorld.Core.Domain
             citizens.Add(citizen);
             citizensByJob[citizen.Job].Add(citizen);
             citizenLookup[citizen.Identifier] = citizen;
-            citizenEventObjects[citizen.Identifier] = eventRegistry.CreateIdentifier(EventObjectType.Citizen);
+
+            var identifier = eventRegistry.CreateIdentifier(EventObjectType.Citizen);
+            citizenEventObjects[citizen.Identifier] = identifier;
+            citizenIdByEventObjectId[identifier.Id] = citizen.Identifier;
             return citizen;
         }
 
@@ -101,6 +179,7 @@ namespace AutoWorld.Core.Domain
             ProcessCitizensLifecycle();
             UpdateAssignments();
             AssignIdleCitizens();
+            ProcessDeferredActions();
         }
 
         private void AdvancePopulationGrowth()
@@ -113,7 +192,7 @@ namespace AutoWorld.Core.Domain
                 if (!populationGrowthPaused)
                 {
                     populationGrowthPaused = true;
-                    RaiseManagerEvent(EventType.PopulationGrowthPaused, $"주거 공간 부족: {population}/{capacity}");
+                    RaiseManagerEvent(GameEvents.PopulationGrowthPaused, capacity.ToString(), population);
                 }
 
                 return;
@@ -122,7 +201,7 @@ namespace AutoWorld.Core.Domain
             if (populationGrowthPaused)
             {
                 populationGrowthPaused = false;
-                RaiseManagerEvent(EventType.PopulationGrowthResumed, $"인구 성장이 재개되었습니다: {population}/{capacity}");
+                RaiseManagerEvent(GameEvents.PopulationGrowthResumed, capacity.ToString(), population);
             }
 
             if (--workerTickCountdown > 0)
@@ -132,7 +211,7 @@ namespace AutoWorld.Core.Domain
 
             workerTickCountdown = workerTicksInterval;
             var citizen = AddCitizen(JobType.Worker);
-            RaiseCitizenEvent(EventType.PopulationGrowth, citizen, "새 일꾼이 합류했습니다.");
+            RaiseCitizenEvent(GameEvents.PopulationGrowth, citizen);
         }
 
         private void ProcessCitizensLifecycle()
@@ -144,16 +223,16 @@ namespace AutoWorld.Core.Domain
                 citizen.TicksUntilFoodConsume -= 1;
                 if (citizen.TicksUntilFoodConsume <= 0)
                 {
-                    if (resourceStore.TryConsume(ResourceType.Food, 1))
+                    if (resourceManager.TryConsume(ResourceType.Food, 1))
                     {
                         citizen.TicksUntilFoodConsume = foodConsumeTicks;
-                        RaiseCitizenEvent(EventType.CitizenFoodConsumed, citizen);
+                        RaiseCitizenEvent(GameEvents.CitizenFoodConsumed, citizen);
                     }
                     else
                     {
                         citizen.TicksUntilFoodConsume = foodConsumeTicks;
-                        RaiseCitizenEvent(EventType.CitizenFoodShortage, citizen);
-                        HandleCitizenDeath(i, citizen, "FoodShortage");
+                        RaiseCitizenEvent(GameEvents.CitizenFoodShortage, citizen);
+                        RaiseCitizenEvent(GameEvents.MissingMeal, citizen, "FoodShortage");
                         continue;
                     }
                 }
@@ -168,7 +247,7 @@ namespace AutoWorld.Core.Domain
                         citizen.TicksUntilSoldierUpgrade = soldierUpgradeTicks;
                         if (citizen.Level != previousLevel)
                         {
-                            RaiseCitizenEvent(EventType.SoldierLevelUpgraded, citizen, null, citizen.Level);
+                            RaiseCitizenEvent(GameEvents.SoldierLevelUpgraded, citizen, null, citizen.Level);
                         }
                     }
                 }
@@ -180,6 +259,11 @@ namespace AutoWorld.Core.Domain
 
                 if (citizen.AwakenTicks >= ticksForRest)
                 {
+                    if (!citizen.HasState(TiredState))
+                    {
+                        RaiseCitizenEvent(GameEvents.OverflowingTicksForRest, citizen, TiredState);
+                    }
+
                     citizen.NeedsRest = true;
                 }
             }
@@ -191,11 +275,15 @@ namespace AutoWorld.Core.Domain
             ReleaseAssignment(citizen);
             citizen.Kill();
 
-            RaiseCitizenEvent(EventType.CitizenDied, citizen, reason, citizen.Identifier, target);
+            RaiseCitizenEvent(GameEvents.CitizenDied, citizen, reason, citizen.Identifier, target);
 
             citizensByJob[citizen.Job].Remove(citizen);
             citizenLookup.Remove(citizen.Identifier);
-            citizenEventObjects.Remove(citizen.Identifier);
+            if (citizenEventObjects.TryGetValue(citizen.Identifier, out var identifier))
+            {
+                citizenIdByEventObjectId.Remove(identifier.Id);
+                citizenEventObjects.Remove(citizen.Identifier);
+            }
             citizens.RemoveAt(index);
         }
 
@@ -270,6 +358,145 @@ namespace AutoWorld.Core.Domain
             }
         }
 
+        public void OnEvent(string eventName, EventObject source, EventParameter parameter)
+        {
+            if (string.IsNullOrWhiteSpace(eventName))
+            {
+                return;
+            }
+
+            if (!actionsByEvent.TryGetValue(eventName, out var actions))
+            {
+                return;
+            }
+
+            for (var i = 0; i < actions.Count; i++)
+            {
+                var action = actions[i];
+                if (action.ActionImmediately)
+                {
+                    ExecuteAction(action, source, parameter);
+                }
+                else
+                {
+                    deferredActions.Add(new PendingAction(action, source, parameter));
+                }
+            }
+        }
+
+        private void ProcessDeferredActions()
+        {
+            if (deferredActions.Count == 0)
+            {
+                return;
+            }
+
+            for (var i = 0; i < deferredActions.Count; i++)
+            {
+                var pending = deferredActions[i];
+                ExecuteAction(pending.Action, pending.Source, pending.Parameter);
+            }
+
+            deferredActions.Clear();
+        }
+
+        private void ExecuteAction(EventAction action, EventObject source, EventParameter parameter)
+        {
+            switch (action.ActionName)
+            {
+                case "AddCitizenState":
+                    if (TryResolveCitizen(source, parameter, out var citizenToAdd))
+                    {
+                        ApplyCitizenState(citizenToAdd, action.StringParameter, add: true);
+                    }
+
+                    break;
+                case "RemoveCitizenState":
+                    if (TryResolveCitizen(source, parameter, out var citizenToRemove))
+                    {
+                        ApplyCitizenState(citizenToRemove, action.StringParameter, add: false);
+                    }
+
+                    break;
+                case "DestroyCitizen":
+                    if (TryResolveCitizen(source, parameter, out var citizenToDestroy))
+                    {
+                        var reason = !string.IsNullOrWhiteSpace(action.StringParameter)
+                            ? action.StringParameter
+                            : (!string.IsNullOrWhiteSpace(parameter.StringValue) ? parameter.StringValue : action.EventName);
+                        DestroyCitizen(citizenToDestroy, reason);
+                    }
+
+                    break;
+            }
+        }
+
+        private void ApplyCitizenState(Citizen citizen, string stateName, bool add)
+        {
+            if (citizen == null)
+            {
+                return;
+            }
+
+            var state = stateName?.Trim();
+            if (string.IsNullOrEmpty(state))
+            {
+                return;
+            }
+
+            if (add)
+            {
+                if (citizen.AddState(state) && string.Equals(state, TiredState, StringComparison.OrdinalIgnoreCase))
+                {
+                    citizen.NeedsRest = true;
+                }
+            }
+            else
+            {
+                if (citizen.RemoveState(state) && string.Equals(state, TiredState, StringComparison.OrdinalIgnoreCase))
+                {
+                    citizen.NeedsRest = false;
+                }
+            }
+        }
+
+        private bool TryResolveCitizen(EventObject source, EventParameter parameter, out Citizen citizen)
+        {
+            if (TryGetCitizen(source, out citizen))
+            {
+                return true;
+            }
+
+            if (parameter.Target.HasValue && TryGetCitizen(parameter.Target.Value, out citizen))
+            {
+                return true;
+            }
+
+            if (parameter.CustomObject is int citizenId && citizenId > 0 && citizenLookup.TryGetValue(citizenId, out citizen))
+            {
+                return true;
+            }
+
+            citizen = null;
+            return false;
+        }
+
+        private void DestroyCitizen(Citizen citizen, string reason)
+        {
+            if (citizen == null)
+            {
+                return;
+            }
+
+            var index = citizens.IndexOf(citizen);
+            if (index < 0)
+            {
+                return;
+            }
+
+            HandleCitizenDeath(index, citizen, reason ?? string.Empty);
+        }
+
         private bool TryAssignRest(Citizen citizen)
         {
             foreach (var field in fieldManager.Fields)
@@ -290,7 +517,7 @@ namespace AutoWorld.Core.Domain
                 }
 
                 citizen.AssignRest(field, task);
-                RaiseCitizenEvent(EventType.RestStarted, citizen, field.Definition.Type.ToString());
+                RaiseCitizenEvent(GameEvents.RestStarted, citizen, field.Definition.Type.ToString());
                 return true;
             }
 
@@ -314,7 +541,7 @@ namespace AutoWorld.Core.Domain
                 transformation.AssignWorker(citizen.Identifier);
                 transformationByCitizen[citizen.Identifier] = transformation;
                 citizen.AssignTransformation(transformation.SourceField);
-                RaiseCitizenEvent(EventType.FieldTransformationStarted, citizen, transformation.TargetDefinition.Type.ToString());
+                RaiseCitizenEvent(GameEvents.FieldTransformationStarted, citizen, transformation.TargetDefinition.Type.ToString());
                 return true;
             }
 
@@ -358,7 +585,7 @@ namespace AutoWorld.Core.Domain
 
                 citizen.AssignWork(field, task);
                 jobFieldCursor[citizen.Job] = (index + 1) % fields.Count;
-                RaiseCitizenEvent(EventType.TaskStarted, citizen, task.Name);
+                RaiseCitizenEvent(GameEvents.TaskStarted, citizen, task.Name);
                 return true;
             }
 
@@ -433,7 +660,7 @@ namespace AutoWorld.Core.Domain
             citizen.NeedsRest = false;
             citizen.ClearAssignment();
 
-            RaiseCitizenEvent(EventType.RestCompleted, citizen, field.Definition.Type.ToString());
+            RaiseCitizenEvent(GameEvents.RestCompleted, citizen, field.Definition.Type.ToString());
         }
 
         private void ProcessTransformationTick(Citizen citizen)
@@ -455,65 +682,44 @@ namespace AutoWorld.Core.Domain
             fieldManager.CompleteTransformation(transformation);
             citizen.ClearAssignment();
 
-            RaiseCitizenEvent(EventType.FieldTransformationCompleted, citizen, transformation.TargetDefinition.Type.ToString());
-            RaiseManagerEvent(EventType.BuildingCompleted, transformation.TargetDefinition.Type.ToString());
+            RaiseCitizenEvent(GameEvents.FieldTransformationCompleted, citizen, transformation.TargetDefinition.Type.ToString());
+            RaiseManagerEvent(GameEvents.BuildingCompleted, transformation.TargetDefinition.Type.ToString());
         }
 
         private void HandleTaskCompletion(Citizen citizen, FieldState field, TaskDefinition task)
         {
-            foreach (var result in task.Results)
-            {
-                resourceStore.Add(result.Type, result.Amount);
-            }
-
-            if (task.Outcome.Kind == TaskOutcomeKind.Field)
-            {
-                HandleFieldOutcome(field, task.Outcome.Field);
-            }
-            else if (task.Outcome.Kind == TaskOutcomeKind.Resource && task.Results.Count == 0)
-            {
-                var resource = task.Outcome.Resource;
-                resourceStore.Add(resource.Type, resource.Amount);
-            }
-
             field.ResetProgress(task);
             field.ReleaseSlot(task);
             citizen.ClearAssignment();
 
-            RaiseCitizenEvent(EventType.TaskCompleted, citizen, task.Name);
-        }
+            RaiseCitizenEvent(GameEvents.TaskCompleted, citizen, task.Name);
 
-        private void HandleFieldOutcome(FieldState field, FieldType targetField)
-        {
-            if (targetField == FieldType.BadLand)
+            if (!string.IsNullOrWhiteSpace(task.RiseEvent))
             {
-                HandleTerritoryExpansion(field);
-            }
-            else
-            {
-                // TODO: 추가 필드 결과 처리
-            }
-        }
+                var parameter = new EventParameter
+                {
+                    CustomObject = citizen.Identifier
+                };
 
-        private void HandleTerritoryExpansion(FieldState originField)
-        {
-            if (fieldManager.TryExpandTerritory())
-            {
-                RaiseManagerEvent(EventType.TerritoryExpansion, "영토가 확장되었습니다.");
-            }
-            else
-            {
-                RaiseManagerEvent(EventType.TerritoryExpansionFailed, "확장할 수 있는 영역이 없습니다.");
+                var fieldIdentifier = fieldManager.GetEventObject(field);
+                if (fieldIdentifier.Type != EventObjectType.None)
+                {
+                    parameter.Target = fieldIdentifier;
+                    parameter.TargetTypes = EventObjectType.Field;
+                }
+
+                fieldManager.RaiseFieldEvent(field, task.RiseEvent, parameter);
             }
         }
 
-        private void RaiseCitizenEvent(EventType eventType, Citizen citizen, string message = null, int intValue = 0, EventObject? explicitTarget = null)
+        private void RaiseCitizenEvent(string eventName, Citizen citizen, string data = null, int intValue = 0, EventObject? explicitTarget = null)
         {
             var parameter = new EventParameter
             {
-                IntValue = intValue != 0 ? intValue : citizen?.Identifier ?? 0,
-                StringValue = message ?? string.Empty,
-                TargetTypes = citizen != null ? EventObjectType.Citizen : EventObjectType.None
+                IntValue = intValue,
+                StringValue = data ?? string.Empty,
+                TargetTypes = citizen != null ? EventObjectType.Citizen : EventObjectType.None,
+                CustomObject = citizen?.Identifier ?? 0
             };
 
             if (citizen != null)
@@ -525,74 +731,34 @@ namespace AutoWorld.Core.Domain
                 }
             }
 
-            EventManager.Instance.Invoke(eventType, managerEventObject, parameter);
-        }
-
-        public bool RequestFieldTransformation(FieldType targetType)
-        {
-            var definition = fieldManager.GetDefinition(targetType);
-
-            if (!HasSufficientResources(definition.ConstructionCosts))
+            var source = citizen != null ? GetCitizenEventObject(citizen.Identifier) : managerEventObject;
+            if (source.Type == EventObjectType.None)
             {
-                RaiseManagerEvent(EventType.FieldTransformationFailed, $"자원 부족: {targetType}");
-                return false;
+                source = managerEventObject;
             }
 
-            var transformation = fieldManager.BeginTransformation(targetType);
-            if (transformation == null)
-            {
-                RaiseManagerEvent(EventType.FieldTransformationFailed, $"배치 실패: {targetType}");
-                return false;
-            }
-
-            ConsumeResources(definition.ConstructionCosts);
-            RaiseManagerEvent(EventType.FieldTransformationStarted, targetType.ToString());
-            return true;
+            source.RaiseEvent(eventName, parameter);
         }
 
         private bool HasSufficientResources(IReadOnlyCollection<ResourceAmount> costs)
         {
-            if (costs == null)
-            {
-                return true;
-            }
-
-            foreach (var cost in costs)
-            {
-                if (resourceStore.GetAmount(cost.Type) < cost.Amount)
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return resourceManager.HasSufficientResources(costs);
         }
 
         private void ConsumeResources(IReadOnlyCollection<ResourceAmount> costs)
         {
-            if (costs == null)
-            {
-                return;
-            }
-
-            foreach (var cost in costs)
-            {
-                if (!resourceStore.TryConsume(cost.Type, cost.Amount))
-                {
-                    throw new InvalidOperationException($"자원 차감 실패: {cost.Type} {cost.Amount}");
-                }
-            }
+            resourceManager.ConsumeResources(costs);
         }
 
-        private void RaiseManagerEvent(EventType eventType, string message = null, int intValue = 0)
+        private void RaiseManagerEvent(string eventName, string data = null, int intValue = 0)
         {
             var parameter = new EventParameter
             {
                 IntValue = intValue,
-                StringValue = message ?? string.Empty
+                StringValue = data ?? string.Empty
             };
 
-            EventManager.Instance.Invoke(eventType, managerEventObject, parameter);
+            managerEventObject.RaiseEvent(eventName, parameter);
         }
 
         public bool TryIncreaseJob(JobType job)
@@ -604,7 +770,7 @@ namespace AutoWorld.Core.Domain
 
             if (!citizensByJob.TryGetValue(JobType.Worker, out var workerSet) || workerSet.Count == 0)
             {
-                RaiseManagerEvent(EventType.JobChangeFailed, $"Worker 부족: {job}");
+                RaiseManagerEvent(GameEvents.JobChangeFailed, job.ToString(), JobChangeFailureMissingWorker);
                 return false;
             }
 
@@ -617,13 +783,13 @@ namespace AutoWorld.Core.Domain
             var costs = GetJobCost(job);
             if (!HasSufficientResources(costs))
             {
-                RaiseManagerEvent(EventType.JobChangeFailed, $"자원 부족: {job}");
+                RaiseManagerEvent(GameEvents.JobChangeFailed, job.ToString(), JobChangeFailureInsufficientResource);
                 return false;
             }
 
             ConsumeResources(costs);
             ChangeCitizenJob(worker, job);
-            RaiseCitizenEvent(EventType.JobAssignmentChanged, worker, job.ToString());
+            RaiseCitizenEvent(GameEvents.JobAssignmentChanged, worker, job.ToString());
             return true;
         }
 
@@ -636,7 +802,7 @@ namespace AutoWorld.Core.Domain
 
             if (!citizensByJob.TryGetValue(job, out var jobSet) || jobSet.Count == 0)
             {
-                RaiseManagerEvent(EventType.JobChangeFailed, $"해당 직업 인원 없음: {job}");
+                RaiseManagerEvent(GameEvents.JobChangeFailed, job.ToString(), JobChangeFailureNoCitizen);
                 return false;
             }
 
@@ -647,7 +813,7 @@ namespace AutoWorld.Core.Domain
             }
 
             ChangeCitizenJob(citizen, JobType.Worker);
-            RaiseCitizenEvent(EventType.JobAssignmentChanged, citizen, JobType.Worker.ToString());
+            RaiseCitizenEvent(GameEvents.JobAssignmentChanged, citizen, JobType.Worker.ToString());
             return true;
         }
 

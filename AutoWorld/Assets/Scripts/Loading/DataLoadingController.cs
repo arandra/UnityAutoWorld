@@ -14,6 +14,7 @@ namespace AutoWorld.Loading
         [SerializeField] private GridMaps gridMapsAsset;
         [SerializeField] private Jobs jobsAsset;
         [SerializeField] private Tasks tasksAsset;
+        [SerializeField] private EventActions eventActionsAsset;
         [SerializeField] private string nextSceneName = "Game";
 
         private void Start()
@@ -25,13 +26,14 @@ namespace AutoWorld.Loading
                 FieldTransformsAsset = fieldTransformsAsset,
                 GridMapsAsset = gridMapsAsset,
                 JobsAsset = jobsAsset,
-                TasksAsset = tasksAsset
+                TasksAsset = tasksAsset,
+                EventActionsAsset = eventActionsAsset
             };
 
             var steps = new List<ILoadStep>
             {
                 new InitConstLoadStep(initConstAsset),
-                new FieldAssetsLoadStep(fieldsAsset, fieldTransformsAsset, tasksAsset, gridMapsAsset, jobsAsset),
+                new FieldAssetsLoadStep(fieldsAsset, fieldTransformsAsset, tasksAsset, gridMapsAsset, jobsAsset, eventActionsAsset),
                 new FieldDefinitionBuildStep(),
                 new DomainBootstrapStep(),
                 new SceneTransitionStep(nextSceneName)

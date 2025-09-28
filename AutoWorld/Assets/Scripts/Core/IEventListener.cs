@@ -2,6 +2,6 @@ namespace AutoWorld.Core
 {
     public interface IEventListener
     {
-        void OnEvent(EventType eventType, EventObject source, EventParameter parameter);
+        void OnEvent(string eventName, EventObject source, EventParameter parameter);
     }
 }

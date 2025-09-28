@@ -1,48 +1,52 @@
 using AutoWorld.Core;
 using UnityEngine;
-using EventType = AutoWorld.Core.EventType;
 
 namespace AutoWorld.Game
 {
     public sealed class DebugCoreEvents : MonoBehaviour, IEventListener
     {
-        private static readonly EventType[] ObservedEvents =
+        private static readonly string[] ObservedEvents =
         {
-            EventType.CitizenFoodConsumed,
-            EventType.CitizenFoodShortage,
-            EventType.SoldierLevelUpgraded
+            GameEvents.CitizenFoodConsumed,
+            GameEvents.CitizenFoodShortage,
+            GameEvents.SoldierLevelUpgraded
         };
 
         private void OnEnable()
         {
-            foreach (var eventType in ObservedEvents)
+            foreach (var eventName in ObservedEvents)
             {
-                EventManager.Instance.Register(eventType, this);
+                EventManager.Instance.Register(eventName, this);
             }
         }
 
         private void OnDisable()
         {
-            foreach (var eventType in ObservedEvents)
+            foreach (var eventName in ObservedEvents)
             {
-                EventManager.Instance.Unregister(eventType, this);
+                EventManager.Instance.Unregister(eventName, this);
             }
         }
 
-        public void OnEvent(EventType eventType, EventObject source, EventParameter parameter)
+        public void OnEvent(string eventName, EventObject source, EventParameter parameter)
         {
-            switch (eventType)
+            switch (eventName)
             {
-                case EventType.CitizenFoodConsumed:
-                    Debug.Log($"Food consumed by citizen {parameter.IntValue}");
+                case GameEvents.CitizenFoodConsumed:
+                    Debug.Log($"Food consumed by citizen {GetCitizenId(parameter)}");
                     break;
-                case EventType.CitizenFoodShortage:
-                    Debug.LogWarning($"Food shortage for citizen {parameter.IntValue}");
+                case GameEvents.CitizenFoodShortage:
+                    Debug.LogWarning($"Food shortage for citizen {GetCitizenId(parameter)}");
                     break;
-                case EventType.SoldierLevelUpgraded:
-                    Debug.Log($"Soldier {parameter.Target?.Id ?? parameter.IntValue} level up to {parameter.IntValue}");
+                case GameEvents.SoldierLevelUpgraded:
+                    Debug.Log($"Soldier {GetCitizenId(parameter)} level up to {parameter.IntValue}");
                     break;
             }
+        }
+
+        private static int GetCitizenId(EventParameter parameter)
+        {
+            return parameter.CustomObject is int citizenId && citizenId > 0 ? citizenId : 0;
         }
     }
 }

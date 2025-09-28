@@ -82,7 +82,7 @@ namespace AutoWorld.Loading.Steps
             context.FieldDefinitions = definitions;
             context.GridMapLookup = BuildGridMapLookup(context.GridMapsAsset);
             context.JobCosts = BuildJobCosts(context.JobsAsset);
-            // gridMaps와 jobs 데이터를 활용한 추가 초기화를 후속 단계에서 확장할 수 있습니다.
+            context.EventActions = context.EventActionsAsset?.Values;
         }
 
         private static Dictionary<string, IReadOnlyList<TaskDefinition>> BuildAllTasks(Tasks tasksAsset)
@@ -160,17 +160,12 @@ namespace AutoWorld.Loading.Steps
         private static TaskDefinition BuildTask(Core.Data.Task task)
         {
             var jobParse = ParseJob(task.JobName);
-            var results = BuildResultAmounts(task.Result);
-            var outcome = BuildOutcome(task.Result);
-
             return new TaskDefinition(
                 task.Name,
                 jobParse.Job,
                 jobParse.AllowsAny,
                 task.Tick,
-                Array.Empty<ResourceAmount>(),
-                results,
-                outcome);
+                task.RiseEvent);
         }
 
         private static IReadOnlyList<ResourceAmount> BuildResourceAmounts(IEnumerable<Pair<string, int>> pairs)
@@ -233,41 +228,6 @@ namespace AutoWorld.Loading.Steps
             }
 
             return (jobType, false);
-        }
-
-        private static IReadOnlyList<ResourceAmount> BuildResultAmounts(string result)
-        {
-            if (string.IsNullOrWhiteSpace(result))
-            {
-                return Array.Empty<ResourceAmount>();
-            }
-
-            if (!TryParseResourceType(result, out var resourceType))
-            {
-                return Array.Empty<ResourceAmount>();
-            }
-
-            return new[] { new ResourceAmount(resourceType, 1) };
-        }
-
-        private static TaskOutcome BuildOutcome(string result)
-        {
-            if (string.IsNullOrWhiteSpace(result))
-            {
-                return TaskOutcome.None();
-            }
-
-            if (TryParseResourceType(result, out var resourceType))
-            {
-                return TaskOutcome.ForResource(new ResourceAmount(resourceType, 1));
-            }
-
-            if (TryParseFieldType(result, out var fieldType))
-            {
-                return TaskOutcome.ForField(fieldType);
-            }
-
-            throw new InvalidOperationException($"Task 결과 변환 실패: {result}");
         }
 
         private static bool TryParseFieldType(string name, out FieldType type)

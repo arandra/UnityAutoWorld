@@ -169,8 +169,8 @@ MonoBehaviour:
   gridMapsAsset: {fileID: 11400000, guid: e0aab433a60ff604faabfabf457262bc, type: 2}
   jobsAsset: {fileID: 11400000, guid: c3994630eefc1bc49b055222a12d3f76, type: 2}
   tasksAsset: {fileID: 11400000, guid: 3b44aa92b7d7d5246af39fa484352f8f, type: 2}
+  eventActionsAsset: {fileID: 11400000, guid: 2e16df02721a48999f0f9e4691756da7, type: 2}
   nextSceneName: Game
-  coreEventsProvider: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

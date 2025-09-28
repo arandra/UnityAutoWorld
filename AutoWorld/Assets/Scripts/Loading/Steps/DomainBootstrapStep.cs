@@ -25,7 +25,8 @@ namespace AutoWorld.Loading.Steps
                 context.TickScheduler,
                 context.FieldDefinitions,
                 context.GridMapLookup,
-                context.JobCosts);
+                context.JobCosts,
+                context.EventActions);
             CoreRuntime.SetSession(context.GameSession);
             context.TickScheduler.SetTickDuration(context.InitConstData.MillisecondPerTick);
         }

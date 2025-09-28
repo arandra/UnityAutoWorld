@@ -11,14 +11,16 @@ namespace AutoWorld.Loading.Steps
         private readonly GridMaps gridMaps;
         private readonly Jobs jobs;
         private readonly Tasks tasks;
+        private readonly EventActions eventActions;
 
-        public FieldAssetsLoadStep(Fields fields, FieldTransforms transforms, Tasks tasks, GridMaps gridMaps, Jobs jobs)
+        public FieldAssetsLoadStep(Fields fields, FieldTransforms transforms, Tasks tasks, GridMaps gridMaps, Jobs jobs, EventActions eventActions)
         {
             this.fields = fields;
             this.transforms = transforms;
             this.gridMaps = gridMaps;
             this.jobs = jobs;
             this.tasks = tasks;
+            this.eventActions = eventActions;
         }
 
         public string Description => "필드 관련 데이터 로딩";
@@ -55,11 +57,17 @@ namespace AutoWorld.Loading.Steps
                 throw new InvalidOperationException("Tasks 자산이 설정되지 않았습니다.");
             }
 
+            if (eventActions == null)
+            {
+                throw new InvalidOperationException("EventActions 자산이 설정되지 않았습니다.");
+            }
+
             context.FieldsAsset = fields;
             context.FieldTransformsAsset = transforms;
             context.GridMapsAsset = gridMaps;
             context.JobsAsset = jobs;
             context.TasksAsset = tasks;
+            context.EventActionsAsset = eventActions;
         }
     }
 }

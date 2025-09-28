@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AutoWorld.Core.Data;
 using AutoWorld.Core.Domain;
 
 namespace AutoWorld.Core.Services
@@ -11,7 +12,8 @@ namespace AutoWorld.Core.Services
             ManualTickScheduler scheduler,
             IReadOnlyDictionary<FieldType, FieldDefinition> definitions,
             IReadOnlyDictionary<int, AutoWorld.Core.Data.GridMap> gridMaps,
-            IReadOnlyDictionary<JobType, IReadOnlyList<ResourceAmount>> jobCosts)
+            IReadOnlyDictionary<JobType, IReadOnlyList<ResourceAmount>> jobCosts,
+            IReadOnlyList<EventAction> eventActions)
         {
             if (initConst == null)
             {
@@ -38,11 +40,13 @@ namespace AutoWorld.Core.Services
 
             var registryService = new EventRegistryService();
 
-            var fieldManager = new FieldManager(definitions, gridMaps);
+            var resourceManager = new ResourceManager(resourceStore, registryService);
+
+            var fieldManager = new FieldManager(definitions, gridMaps, registryService);
             fieldManager.InitializeTerritory(initConst.InitBadLandSize);
 
-            var population = new PopulationManager(
-                resourceStore,
+            var citizenManager = new CitizenManager(
+                resourceManager,
                 fieldManager,
                 registryService,
                 initConst.FoodConsumeTicks,
@@ -54,12 +58,17 @@ namespace AutoWorld.Core.Services
 
             InitializeFields(fieldManager, initConst.InitFields);
 
-            InitializePopulation(population, initConst.InitJobs);
+            InitializePopulation(citizenManager, initConst.InitJobs);
 
-            return new GameSession(scheduler, population, fieldManager, resourceStore, registryService);
+            var eventActionList = eventActions ?? Array.Empty<EventAction>();
+            citizenManager.ConfigureEventActions(eventActionList);
+            resourceManager.ConfigureEventActions(eventActionList);
+            fieldManager.ConfigureEventActions(eventActionList);
+
+            return new GameSession(scheduler, citizenManager, fieldManager, resourceManager, registryService);
         }
 
-        private static void InitializePopulation(PopulationManager population, IList<string> jobNames)
+        private static void InitializePopulation(CitizenManager citizens, IList<string> jobNames)
         {
             if (jobNames == null)
             {
@@ -73,7 +82,7 @@ namespace AutoWorld.Core.Services
                     continue;
                 }
 
-                population.AddCitizen(jobType);
+                citizens.AddCitizen(jobType);
             }
         }
 

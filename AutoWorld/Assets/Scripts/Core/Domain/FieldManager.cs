@@ -1,25 +1,55 @@
 using System;
 using System.Collections.Generic;
 using AutoWorld.Core.Data;
+using AutoWorld.Core.Services;
+using AutoWorld.Core;
 
 namespace AutoWorld.Core.Domain
 {
     /// <summary>
     /// 필드 상태를 생성하고 조회하는 매니저다.
     /// </summary>
-    public sealed class FieldManager
+    public sealed class FieldManager : IEventListener, ITickListener
     {
         private readonly Dictionary<FieldType, FieldDefinition> definitions;
         private readonly Dictionary<int, GridMap> gridMaps;
         private readonly Dictionary<FieldCoordinate, FieldState> coordinateMap = new Dictionary<FieldCoordinate, FieldState>();
         private readonly List<FieldState> fields = new List<FieldState>();
         private readonly List<FieldTransformation> transformations = new List<FieldTransformation>();
+        private readonly EventRegistryService eventRegistry;
+        private readonly Dictionary<FieldState, EventObject> fieldEventObjects = new Dictionary<FieldState, EventObject>();
+        private readonly Dictionary<int, FieldState> fieldByEventId = new Dictionary<int, FieldState>();
+        private readonly Dictionary<string, List<EventAction>> actionsByEvent = new Dictionary<string, List<EventAction>>(StringComparer.Ordinal);
+        private readonly HashSet<string> registeredEvents = new HashSet<string>(StringComparer.Ordinal);
+        private readonly List<PendingAction> deferredActions = new List<PendingAction>();
+        private readonly EventObject managerEventObject;
+        private const int FieldTransformationFailureInsufficientResources = 1;
+        private const int FieldTransformationFailurePlacement = 2;
         private int minX;
         private int maxX;
         private int minY;
         private int maxY;
 
-        public FieldManager(IReadOnlyDictionary<FieldType, FieldDefinition> definitions, IReadOnlyDictionary<int, GridMap> gridMaps)
+        private readonly struct PendingAction
+        {
+            public PendingAction(EventAction action, EventObject source, EventParameter parameter)
+            {
+                Action = action;
+                Source = source;
+                Parameter = parameter;
+            }
+
+            public EventAction Action { get; }
+
+            public EventObject Source { get; }
+
+            public EventParameter Parameter { get; }
+        }
+
+        public FieldManager(
+            IReadOnlyDictionary<FieldType, FieldDefinition> definitions,
+            IReadOnlyDictionary<int, GridMap> gridMaps,
+            EventRegistryService eventRegistry)
         {
             if (definitions == null)
             {
@@ -31,8 +61,15 @@ namespace AutoWorld.Core.Domain
                 throw new ArgumentNullException(nameof(gridMaps));
             }
 
+            if (eventRegistry == null)
+            {
+                throw new ArgumentNullException(nameof(eventRegistry));
+            }
+
             this.definitions = new Dictionary<FieldType, FieldDefinition>(definitions);
             this.gridMaps = new Dictionary<int, GridMap>(gridMaps);
+            this.eventRegistry = eventRegistry;
+            managerEventObject = this.eventRegistry.CreateIdentifier(EventObjectType.Manager);
         }
 
         public IReadOnlyList<FieldState> Fields => fields;
@@ -42,6 +79,145 @@ namespace AutoWorld.Core.Domain
         public FieldState TownHall { get; private set; }
 
         public IReadOnlyList<FieldTransformation> ActiveTransformations => transformations;
+
+        public EventObject GetEventObject(FieldState field)
+        {
+            return field != null && fieldEventObjects.TryGetValue(field, out var identifier) ? identifier : default;
+        }
+
+        public void RaiseFieldEvent(FieldState field, string eventName, EventParameter parameter)
+        {
+            if (field == null || string.IsNullOrWhiteSpace(eventName))
+            {
+                return;
+            }
+
+            if (!fieldEventObjects.TryGetValue(field, out var identifier))
+            {
+                return;
+            }
+
+            identifier.RaiseEvent(eventName, parameter);
+        }
+
+        public bool RequestFieldTransformation(FieldType targetType, ResourceManager resourceManager)
+        {
+            if (resourceManager == null)
+            {
+                throw new ArgumentNullException(nameof(resourceManager));
+            }
+
+            var definition = GetDefinition(targetType);
+
+            if (!resourceManager.HasSufficientResources(definition.ConstructionCosts))
+            {
+                RaiseManagerEvent(GameEvents.FieldTransformationFailed, targetType.ToString(), FieldTransformationFailureInsufficientResources);
+                return false;
+            }
+
+            var transformation = BeginTransformation(targetType);
+            if (transformation == null)
+            {
+                RaiseManagerEvent(GameEvents.FieldTransformationFailed, targetType.ToString(), FieldTransformationFailurePlacement);
+                return false;
+            }
+
+            resourceManager.ConsumeResources(definition.ConstructionCosts);
+            RaiseManagerEvent(GameEvents.FieldTransformationStarted, targetType.ToString());
+            return true;
+        }
+
+        private void RaiseManagerEvent(string eventName, string data = null, int intValue = 0)
+        {
+            if (string.IsNullOrWhiteSpace(eventName))
+            {
+                return;
+            }
+
+            var parameter = new EventParameter
+            {
+                StringValue = data ?? string.Empty,
+                IntValue = intValue
+            };
+
+            managerEventObject.RaiseEvent(eventName, parameter);
+        }
+
+        public void ConfigureEventActions(IEnumerable<EventAction> eventActions)
+        {
+            if (eventActions == null)
+            {
+                return;
+            }
+
+            foreach (var action in eventActions)
+            {
+                if (action == null)
+                {
+                    continue;
+                }
+
+                if (!string.Equals(action.EventListener, nameof(FieldManager), StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (!actionsByEvent.TryGetValue(action.EventName, out var list))
+                {
+                    list = new List<EventAction>();
+                    actionsByEvent[action.EventName] = list;
+                }
+
+                list.Add(action);
+
+                if (registeredEvents.Add(action.EventName))
+                {
+                    EventManager.Instance.Register(action.EventName, this);
+                }
+            }
+        }
+
+        public void OnEvent(string eventName, EventObject source, EventParameter parameter)
+        {
+            if (string.IsNullOrWhiteSpace(eventName))
+            {
+                return;
+            }
+
+            if (!actionsByEvent.TryGetValue(eventName, out var actions))
+            {
+                return;
+            }
+
+            for (var i = 0; i < actions.Count; i++)
+            {
+                var action = actions[i];
+                if (action.ActionImmediately)
+                {
+                    ExecuteAction(action, source, parameter);
+                }
+                else
+                {
+                    deferredActions.Add(new PendingAction(action, source, parameter));
+                }
+            }
+        }
+
+        public void OnTick(TickContext context)
+        {
+            if (deferredActions.Count == 0)
+            {
+                return;
+            }
+
+            for (var i = 0; i < deferredActions.Count; i++)
+            {
+                var pending = deferredActions[i];
+                ExecuteAction(pending.Action, pending.Source, pending.Parameter);
+            }
+
+            deferredActions.Clear();
+        }
 
         public FieldDefinition GetDefinition(FieldType type)
         {
@@ -101,6 +277,8 @@ namespace AutoWorld.Core.Domain
 
             coordinateMap.Clear();
             fields.Clear();
+            fieldEventObjects.Clear();
+            fieldByEventId.Clear();
             TownHall = null;
 
             minX = 0;
@@ -116,6 +294,7 @@ namespace AutoWorld.Core.Domain
                     var field = new FieldState(badLandDefinition, new[] { coordinate });
                     coordinateMap[coordinate] = field;
                     fields.Add(field);
+                    RegisterField(field);
                 }
             }
         }
@@ -264,7 +443,7 @@ namespace AutoWorld.Core.Domain
                 {
                     if (removed.Add(existingField))
                     {
-                        fields.Remove(existingField);
+                        RemoveField(existingField);
                     }
                 }
 
@@ -273,6 +452,7 @@ namespace AutoWorld.Core.Domain
             }
 
             fields.Add(newField);
+            RegisterField(newField);
 
             if (type == FieldType.TownHall)
             {
@@ -331,6 +511,88 @@ namespace AutoWorld.Core.Domain
             }
 
             return null;
+        }
+
+        private void RegisterField(FieldState field)
+        {
+            if (field == null)
+            {
+                return;
+            }
+
+            if (fieldEventObjects.ContainsKey(field))
+            {
+                return;
+            }
+
+            var identifier = eventRegistry.CreateIdentifier(EventObjectType.Field);
+            fieldEventObjects[field] = identifier;
+            fieldByEventId[identifier.Id] = field;
+        }
+
+        private void RemoveField(FieldState field)
+        {
+            if (field == null)
+            {
+                return;
+            }
+
+            fields.Remove(field);
+
+            if (fieldEventObjects.TryGetValue(field, out var identifier))
+            {
+                fieldEventObjects.Remove(field);
+                fieldByEventId.Remove(identifier.Id);
+            }
+        }
+
+        private bool TryGetField(EventObject identifier, out FieldState field)
+        {
+            if (identifier.Type == EventObjectType.Field && fieldByEventId.TryGetValue(identifier.Id, out field))
+            {
+                return true;
+            }
+
+            field = null;
+            return false;
+        }
+
+        private void ExecuteAction(EventAction action, EventObject source, EventParameter parameter)
+        {
+            if (action == null)
+            {
+                return;
+            }
+
+            switch (action.ActionName)
+            {
+                case "TransformField":
+                case "TransfromField":
+                    HandleTransformField(action, source, parameter);
+                    break;
+            }
+        }
+
+        private void HandleTransformField(EventAction action, EventObject source, EventParameter parameter)
+        {
+            if (string.IsNullOrWhiteSpace(action.StringParameter))
+            {
+                return;
+            }
+
+            if (!Enum.TryParse(action.StringParameter, false, out FieldType targetType))
+            {
+                return;
+            }
+
+            var targetIdentifier = parameter.Target ?? source;
+            if (!TryGetField(targetIdentifier, out var field))
+            {
+                return;
+            }
+
+            var area = new List<FieldCoordinate>(field.Coordinates);
+            ReplaceAreaWithField(targetType, area);
         }
 
         private void UpdateBounds(FieldCoordinate coordinate)

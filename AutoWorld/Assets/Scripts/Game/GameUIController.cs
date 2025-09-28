@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using AutoWorld.Core;
 using AutoWorld.Core.Domain;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using EventType = AutoWorld.Core.EventType;
 
 namespace AutoWorld.Game
 {
@@ -46,6 +46,11 @@ namespace AutoWorld.Game
 
         private const int MaxMessages = 100;
         private const float StatusRefreshInterval = 0.5f;
+        private const int FieldTransformationFailureInsufficientResources = 1;
+        private const int FieldTransformationFailurePlacement = 2;
+        private const int JobChangeFailureMissingWorker = 1;
+        private const int JobChangeFailureInsufficientResource = 2;
+        private const int JobChangeFailureNoCitizen = 3;
 
         [Header("상태 표시")]
         [SerializeField] private Text statusLabel;
@@ -111,10 +116,15 @@ namespace AutoWorld.Game
             UnregisterEvents();
         }
 
-        public void OnEvent(EventType eventType, EventObject source, EventParameter parameter)
+        public void OnEvent(string eventName, EventObject source, EventParameter parameter)
         {
-            var color = ResolveEventColor(eventType);
-            var message = BuildEventMessage(eventType, parameter);
+            if (string.IsNullOrWhiteSpace(eventName))
+            {
+                return;
+            }
+
+            var color = ResolveEventColor(eventName);
+            var message = BuildEventMessage(eventName, source, parameter);
             AddMessage(message, color);
             RefreshStatusImmediate();
         }
@@ -378,7 +388,7 @@ namespace AutoWorld.Game
 
         private string GetJobLabel(JobType job)
         {
-            var count = session?.Population?.GetJobCount(job) ?? 0;
+            var count = session?.Citizens?.GetJobCount(job) ?? 0;
             return $"{job} ({count})";
         }
 
@@ -494,13 +504,181 @@ namespace AutoWorld.Game
             optionItems.Add(label.gameObject);
         }
 
-        private string BuildEventMessage(EventType eventType, EventParameter parameter)
+        private string BuildEventMessage(string eventName, EventObject source, EventParameter parameter)
+        {
+            switch (eventName)
+            {
+                case GameEvents.PopulationGrowth:
+                    return $"{FormatCitizenLabel(parameter)}이(가) 마을에 합류했습니다.";
+                case GameEvents.PopulationGrowthPaused:
+                    {
+                        var (population, capacity) = ExtractPopulationStatus(parameter);
+                        return $"인구 성장이 중단되었습니다 ({population}/{capacity}).";
+                    }
+                case GameEvents.PopulationGrowthResumed:
+                    {
+                        var (population, capacity) = ExtractPopulationStatus(parameter);
+                        return $"인구 성장이 재개되었습니다 ({population}/{capacity}).";
+                    }
+                case GameEvents.CitizenFoodConsumed:
+                    return $"{FormatCitizenLabel(parameter)}이(가) 식사를 마쳤습니다.";
+                case GameEvents.CitizenFoodShortage:
+                    return $"{FormatCitizenLabel(parameter)}이(가) 식량을 얻지 못했습니다.";
+                case GameEvents.MissingMeal:
+                    return $"{FormatCitizenLabel(parameter)}이(가) 굶주림으로 위험한 상태입니다.";
+                case GameEvents.CitizenDied:
+                    return $"{FormatCitizenLabel(parameter)}이(가) {DescribeCitizenDeath(parameter.StringValue)}";
+                case GameEvents.SoldierLevelUpgraded:
+                    return $"{FormatCitizenLabel(parameter)}이(가) 병사 레벨 {Math.Max(1, parameter.IntValue)}로 승급했습니다.";
+                case GameEvents.TaskStarted:
+                    return $"{FormatCitizenLabel(parameter)}이(가) '{parameter.StringValue}' 작업을 시작했습니다.";
+                case GameEvents.TaskCompleted:
+                    return $"{FormatCitizenLabel(parameter)}이(가) '{parameter.StringValue}' 작업을 완료했습니다.";
+                case GameEvents.RestStarted:
+                    return $"{FormatCitizenLabel(parameter)}이(가) {parameter.StringValue}에서 휴식을 시작했습니다.";
+                case GameEvents.RestCompleted:
+                    return $"{FormatCitizenLabel(parameter)}이(가) {parameter.StringValue}에서 휴식을 마쳤습니다.";
+                case GameEvents.OverflowingTicksForRest:
+                    return $"{FormatCitizenLabel(parameter)}이(가) 휴식이 필요합니다.";
+                case GameEvents.FieldTransformationStarted:
+                    return $"{parameter.StringValue} 변환을 시작했습니다.";
+                case GameEvents.FieldTransformationCompleted:
+                    return $"{parameter.StringValue} 변환이 완료되었습니다.";
+                case GameEvents.FieldTransformationFailed:
+                    return DescribeFieldTransformationFailure(parameter);
+                case GameEvents.BuildingCompleted:
+                    return $"{parameter.StringValue} 건설이 완료되었습니다.";
+                case GameEvents.TerritoryExpansion:
+                    return "영토가 확장되었습니다.";
+                case GameEvents.TerritoryExpansionFailed:
+                    return "확장할 수 있는 구역이 없습니다.";
+                case GameEvents.JobAssignmentChanged:
+                    return $"시민의 직업이 {parameter.StringValue}으로 변경되었습니다.";
+                case GameEvents.JobChangeFailed:
+                    return DescribeJobChangeFailure(parameter);
+            }
+
+            if (eventName.EndsWith("TaskComplete", StringComparison.Ordinal))
+            {
+                var prefix = eventName.Substring(0, eventName.Length - "TaskComplete".Length);
+                var label = ToDisplayName(prefix);
+                return $"[{label}] 작업이 완료되었습니다.";
+            }
+
+            var fallback = BuildFallbackDetails(parameter);
+            var display = ToDisplayName(eventName);
+            return fallback.Count == 0 ? $"[{display}]" : $"[{display}] {string.Join(" / ", fallback)}";
+        }
+
+        private Color ResolveEventColor(string eventName)
+        {
+            if (string.IsNullOrWhiteSpace(eventName))
+            {
+                return Color.white;
+            }
+
+            switch (eventName)
+            {
+                case GameEvents.CitizenDied:
+                case GameEvents.MissingMeal:
+                    return Color.red;
+                case GameEvents.PopulationGrowthPaused:
+                case GameEvents.FieldTransformationFailed:
+                case GameEvents.JobChangeFailed:
+                case GameEvents.TerritoryExpansionFailed:
+                    return Color.yellow;
+                case GameEvents.PopulationGrowth:
+                case GameEvents.BuildingCompleted:
+                case GameEvents.TaskCompleted:
+                case GameEvents.FieldTransformationCompleted:
+                case GameEvents.TerritoryExpansion:
+                case GameEvents.SoldierLevelUpgraded:
+                    return Color.green;
+                case GameEvents.TaskStarted:
+                case GameEvents.RestStarted:
+                case GameEvents.RestCompleted:
+                case GameEvents.FieldTransformationStarted:
+                case GameEvents.PopulationGrowthResumed:
+                case GameEvents.JobAssignmentChanged:
+                case GameEvents.OverflowingTicksForRest:
+                    return ResolveInfoColor();
+            }
+
+            if (eventName.EndsWith("TaskComplete", StringComparison.Ordinal))
+            {
+                return Color.green;
+            }
+
+            if (eventName.EndsWith("Failed", StringComparison.Ordinal))
+            {
+                return Color.yellow;
+            }
+
+            return Color.white;
+        }
+
+        private static (int Population, int Capacity) ExtractPopulationStatus(EventParameter parameter)
+        {
+            var population = parameter.IntValue;
+            return TryParseInt(parameter.StringValue, out var capacity)
+                ? (population, capacity)
+                : (population, 0);
+        }
+
+        private static string FormatCitizenLabel(EventParameter parameter)
+        {
+            var id = GetCitizenId(parameter);
+            return id > 0 ? $"시민 #{id}" : "시민";
+        }
+
+        private static int GetCitizenId(EventParameter parameter)
+        {
+            return parameter.CustomObject is int citizenId && citizenId > 0 ? citizenId : 0;
+        }
+
+        private string DescribeCitizenDeath(string reason)
+        {
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                return "사망했습니다.";
+            }
+
+            return reason switch
+            {
+                "FoodShortage" => "식량 부족으로 사망했습니다.",
+                _ => $"{ToDisplayName(reason)}로 사망했습니다."
+            };
+        }
+
+        private string DescribeFieldTransformationFailure(EventParameter parameter)
+        {
+            var target = string.IsNullOrWhiteSpace(parameter.StringValue) ? "필드" : parameter.StringValue;
+            return parameter.IntValue switch
+            {
+                FieldTransformationFailureInsufficientResources => $"{target} 변환에 필요한 자원이 부족합니다.",
+                FieldTransformationFailurePlacement => $"{target}을(를) 배치할 수 있는 공간이 없습니다.",
+                _ => $"{target} 변환에 실패했습니다."
+            };
+        }
+
+        private string DescribeJobChangeFailure(EventParameter parameter)
+        {
+            var jobName = string.IsNullOrWhiteSpace(parameter.StringValue) ? "해당 직업" : parameter.StringValue;
+            return parameter.IntValue switch
+            {
+                JobChangeFailureMissingWorker => $"일꾼이 부족해 {jobName}으로 전환할 수 없습니다.",
+                JobChangeFailureInsufficientResource => $"자원이 부족해 {jobName}으로 전환할 수 없습니다.",
+                JobChangeFailureNoCitizen => $"{jobName} 직종에 배정된 시민이 없습니다.",
+                _ => $"{jobName} 직업 변경에 실패했습니다."
+            };
+        }
+
+        private static List<string> BuildFallbackDetails(EventParameter parameter)
         {
             var details = new List<string>();
-            var content = parameter.StringValue;
-            if (!string.IsNullOrEmpty(content))
+            if (!string.IsNullOrWhiteSpace(parameter.StringValue))
             {
-                details.Add(content);
+                details.Add(parameter.StringValue);
             }
 
             if (parameter.IntValue != 0)
@@ -508,41 +686,41 @@ namespace AutoWorld.Game
                 details.Add(parameter.IntValue.ToString());
             }
 
-            if (details.Count == 0)
+            if (parameter.Target.HasValue)
             {
-                return $"[{eventType}]";
+                details.Add(parameter.Target.Value.ToString());
             }
 
-            return $"[{eventType}] {string.Join(" : ", details)}";
+            return details;
         }
 
-        private Color ResolveEventColor(EventType eventType)
+        private static bool TryParseInt(string value, out int result)
         {
-            switch (eventType)
+            return int.TryParse(value, out result);
+        }
+
+        private static string ToDisplayName(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
             {
-                case EventType.PopulationGrowth:
-                case EventType.BuildingCompleted:
-                case EventType.TaskCompleted:
-                case EventType.RestCompleted:
-                case EventType.FieldTransformationCompleted:
-                case EventType.TerritoryExpansion:
-                    return Color.green;
-                case EventType.FieldTransformationStarted:
-                case EventType.TaskStarted:
-                case EventType.RestStarted:
-                case EventType.PopulationGrowthResumed:
-                    return ResolveInfoColor();
-                case EventType.PopulationGrowthPaused:
-                case EventType.FieldTransformationFailed:
-                case EventType.JobChangeFailed:
-                case EventType.TerritoryExpansionFailed:
-                case EventType.TaskInterrupted:
-                    return Color.yellow;
-                case EventType.CitizenDied:
-                    return Color.red;
-                default:
-                    return Color.white;
+                return "이벤트";
             }
+
+            var builder = new StringBuilder(value.Length + 8);
+            builder.Append(value[0]);
+            for (var i = 1; i < value.Length; i++)
+            {
+                var current = value[i];
+                var previous = value[i - 1];
+                if (char.IsUpper(current) && !char.IsWhiteSpace(previous) && !char.IsUpper(previous))
+                {
+                    builder.Append(' ');
+                }
+
+                builder.Append(current);
+            }
+
+            return builder.ToString();
         }
 
         private Color ResolveInfoColor()
@@ -569,7 +747,7 @@ namespace AutoWorld.Game
                 return;
             }
 
-            var populationCount = session.Population?.Citizens?.Count ?? 0;
+            var populationCount = session.Citizens?.Citizens?.Count ?? 0;
             var territorySize = CalculateTerritorySize();
             var foodAmount = session.Resources?.GetAmount(ResourceType.Food) ?? 0;
             var woodAmount = session.Resources?.GetAmount(ResourceType.Wood) ?? 0;

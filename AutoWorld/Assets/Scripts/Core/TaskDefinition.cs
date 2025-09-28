@@ -12,17 +12,13 @@ namespace AutoWorld.Core
             JobType? job,
             bool allowsAnyJob,
             int durationTicks,
-            IReadOnlyList<ResourceAmount> requirements,
-            IReadOnlyList<ResourceAmount> results,
-            TaskOutcome outcome)
+            string riseEvent)
         {
-            Name = name;
+            Name = name ?? string.Empty;
             Job = job;
             AllowsAnyJob = allowsAnyJob;
             DurationTicks = durationTicks;
-            Requirements = requirements;
-            Results = results;
-            Outcome = outcome;
+            RiseEvent = riseEvent ?? string.Empty;
         }
 
         public string Name { get; }
@@ -33,10 +29,6 @@ namespace AutoWorld.Core
 
         public int DurationTicks { get; }
 
-        public IReadOnlyList<ResourceAmount> Requirements { get; }
-
-        public IReadOnlyList<ResourceAmount> Results { get; }
-
-        public TaskOutcome Outcome { get; }
+        public string RiseEvent { get; }
     }
 }

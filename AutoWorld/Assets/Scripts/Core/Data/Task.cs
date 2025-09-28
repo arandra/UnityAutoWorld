@@ -9,7 +9,6 @@ namespace AutoWorld.Core.Data
         public string Name = string.Empty;
         public string JobName = string.Empty;
         public int Tick;
-        public string Result = string.Empty;
         public string RiseEvent = string.Empty;
     }
 }

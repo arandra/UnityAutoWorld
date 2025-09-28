@@ -80,8 +80,8 @@ MonoBehaviour:
     StringParameter: 
     IntParameter: 0
   - EventName: OccupyingTaskComplete
-    EventListener: FeildManager
-    ActionName: TransfromField
+    EventListener: FieldManager
+    ActionName: TransformField
     ActionImmediately: 0
     PairParameters: []
     StringParameter: BadLand
