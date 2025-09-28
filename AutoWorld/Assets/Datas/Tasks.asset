@@ -18,33 +18,40 @@ MonoBehaviour:
     JobName: Farmer
     Tick: 10
     Result: Food
+    RiseEvent: HarvestingTaskComplete
   - Field: LumberMill
     Name: Cutting
     JobName: WoodCutter
     Tick: 30
     Result: Wood
+    RiseEvent: WoodCuttingTaskComplete
   - Field: Quarry
     Name: Quarring
     JobName: Miner
     Tick: 30
     Result: Stone
+    RiseEvent: QuarringTaskComplete
   - Field: Residence
     Name: Resting
     JobName: Any
     Tick: 30
     Result: 
+    RiseEvent: RestingTaskComplete
   - Field: ExplorationOffice
     Name: Occupying
     JobName: Explorer
     Tick: 50
     Result: BadLand
+    RiseEvent: OccupyingTaskComplete
   - Field: Smithy
     Name: MakingWeapon
     JobName: 
     Tick: 60
     Result: Weapon
+    RiseEvent: MakingWeaponTaskComplete
   - Field: Smithy
     Name: MakingArmor
     JobName: 
     Tick: 60
     Result: Armor
+    RiseEvent: MakingArmorTaskComplete

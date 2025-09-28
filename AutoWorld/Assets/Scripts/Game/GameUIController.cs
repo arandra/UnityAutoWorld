@@ -513,7 +513,7 @@ namespace AutoWorld.Game
                 return $"[{eventType}]";
             }
 
-            return $"[{eventType}] {string.Join(" | ", details)}";
+            return $"[{eventType}] {string.Join(" : ", details)}";
         }
 
         private Color ResolveEventColor(EventType eventType)

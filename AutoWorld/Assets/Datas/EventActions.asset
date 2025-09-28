@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb85a86eb5674bbb8d7f48490356c2b7, type: 3}
+  m_Name: EventActions
+  m_EditorClassIdentifier: Assembly-CSharp::Datas.EventActions
+  Values:
+  - EventName: HarvestingTaskComplete
+    EventListener: ResourceManager
+    ActionName: AddResource
+    ActionImmediately: 0
+    PairParameters:
+    - Key: Food
+      Value: 4
+    StringParameter: 
+    IntParameter: 0
+  - EventName: WoodCuttingTaskComplete
+    EventListener: ResourceManager
+    ActionName: AddResource
+    ActionImmediately: 0
+    PairParameters:
+    - Key: Wood
+      Value: 1
+    StringParameter: 
+    IntParameter: 0
+  - EventName: QuarringTaskComplete
+    EventListener: ResourceManager
+    ActionName: AddResource
+    ActionImmediately: 0
+    PairParameters:
+    - Key: Stone
+      Value: 1
+    StringParameter: 
+    IntParameter: 0
+  - EventName: MakingWeaponTaskComplete
+    EventListener: ResourceManager
+    ActionName: AddResource
+    ActionImmediately: 0
+    PairParameters:
+    - Key: Weapon
+      Value: 1
+    StringParameter: 
+    IntParameter: 0
+  - EventName: MakingArmorTaskComplete
+    EventListener: ResourceManager
+    ActionName: AddResource
+    ActionImmediately: 0
+    PairParameters:
+    - Key: Armor
+      Value: 1
+    StringParameter: 
+    IntParameter: 0
+  - EventName: RestingTaskComplete
+    EventListener: CitizenManager
+    ActionName: RemoveCitizenState
+    ActionImmediately: 0
+    PairParameters: []
+    StringParameter: Tired
+    IntParameter: 0
+  - EventName: OverflowingTicksForRest
+    EventListener: CitizenManager
+    ActionName: AddCitizenState
+    ActionImmediately: 0
+    PairParameters: []
+    StringParameter: Tired
+    IntParameter: 0
+  - EventName: MissingMeal
+    EventListener: CitizenManager
+    ActionName: DestroyCitizen
+    ActionImmediately: 1
+    PairParameters: []
+    StringParameter: 
+    IntParameter: 0
+  - EventName: OccupyingTaskComplete
+    EventListener: FeildManager
+    ActionName: TransfromField
+    ActionImmediately: 0
+    PairParameters: []
+    StringParameter: BadLand
+    IntParameter: 0
