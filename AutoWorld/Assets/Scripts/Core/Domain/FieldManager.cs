@@ -29,6 +29,7 @@ namespace AutoWorld.Core.Domain
         private int maxX;
         private int minY;
         private int maxY;
+        private IDebugLog DebugLog { get; }
 
         private readonly struct PendingAction
         {
@@ -49,7 +50,8 @@ namespace AutoWorld.Core.Domain
         public FieldManager(
             IReadOnlyDictionary<FieldType, FieldDefinition> definitions,
             IReadOnlyDictionary<int, GridMap> gridMaps,
-            EventRegistryService eventRegistry)
+            EventRegistryService eventRegistry,
+            IDebugLog debugLog)
         {
             if (definitions == null)
             {
@@ -69,6 +71,7 @@ namespace AutoWorld.Core.Domain
             this.definitions = new Dictionary<FieldType, FieldDefinition>(definitions);
             this.gridMaps = new Dictionary<int, GridMap>(gridMaps);
             this.eventRegistry = eventRegistry;
+            this.DebugLog = debugLog;
             managerEventObject = this.eventRegistry.CreateIdentifier(EventObjectType.Manager);
         }
 
@@ -183,6 +186,8 @@ namespace AutoWorld.Core.Domain
             {
                 return;
             }
+            
+            DebugLog?.Log($"[FieldManager.OnEvent:{eventName}] source:({source.ToString()}),  parameter:({parameter.ToString()})");
 
             if (!actionsByEvent.TryGetValue(eventName, out var actions))
             {
@@ -559,6 +564,8 @@ namespace AutoWorld.Core.Domain
 
         private void ExecuteAction(EventAction action, EventObject source, EventParameter parameter)
         {
+            DebugLog?.Log($"[FieldManager.ExecuteAction:{action?.EventName}] source:({source.ToString()}),  parameter:({parameter.ToString()})");
+
             if (action == null)
             {
                 return;
@@ -567,7 +574,6 @@ namespace AutoWorld.Core.Domain
             switch (action.ActionName)
             {
                 case "TransformField":
-                case "TransfromField":
                     HandleTransformField(action, source, parameter);
                     break;
             }
@@ -577,6 +583,7 @@ namespace AutoWorld.Core.Domain
         {
             if (string.IsNullOrWhiteSpace(action.StringParameter))
             {
+                TransformFieldToBadLand(source);
                 return;
             }
 
@@ -593,6 +600,17 @@ namespace AutoWorld.Core.Domain
 
             var area = new List<FieldCoordinate>(field.Coordinates);
             ReplaceAreaWithField(targetType, area);
+        }
+        
+        private void TransformFieldToBadLand(EventObject target)
+        {
+            if (!TryGetField(target, out var field))
+            {
+                return;
+            }
+            DebugLog?.Log($"[FieldManager.TransformFieldToBadLand] target:({target.ToString()})");
+            var area = new List<FieldCoordinate>(field.Coordinates);
+            ReplaceAreaWithField(FieldType.BadLand, area);
         }
 
         private void UpdateBounds(FieldCoordinate coordinate)

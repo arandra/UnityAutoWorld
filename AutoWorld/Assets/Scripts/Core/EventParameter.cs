@@ -17,5 +17,10 @@ namespace AutoWorld.Core
         }
 
         public object CustomObject { get; set; }
+
+        public new string ToString()
+        {
+            return $"(sv:{StringValue}, t:({Target}), tt:{TargetTypes}, i:{IntValue}), co:({CustomObject})";
+        }
     }
 }

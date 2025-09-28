@@ -31,7 +31,7 @@ MonoBehaviour:
       Value: 1
     StringParameter: 
     IntParameter: 0
-  - EventName: QuarringTaskComplete
+  - EventName: QuarryingTaskComplete
     EventListener: ResourceManager
     ActionName: AddResource
     ActionImmediately: 0

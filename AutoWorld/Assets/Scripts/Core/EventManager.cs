@@ -11,6 +11,9 @@ namespace AutoWorld.Core
         private readonly HashSet<IEventListener> globalListeners = new HashSet<IEventListener>();
 
         public static EventManager Instance => sharedInstance.Value;
+        
+        private IDebugLog DebugLog { get; set; } 
+        public void SetDebugLog(IDebugLog debugLog) => DebugLog = debugLog;
 
         public void Register(string eventName, IEventListener listener)
         {
@@ -101,6 +104,10 @@ namespace AutoWorld.Core
             if (string.IsNullOrWhiteSpace(eventName))
             {
                 throw new ArgumentException("이벤트 이름이 필요합니다.", nameof(eventName));
+            }
+            else
+            {
+                DebugLog?.Log($"[EventManager.invoke:{eventName}] source:({source.ToString()}),  parameter:({parameter.ToString()})");
             }
 
             var key = eventName.Trim();

@@ -13,7 +13,8 @@ namespace AutoWorld.Core.Services
             IReadOnlyDictionary<FieldType, FieldDefinition> definitions,
             IReadOnlyDictionary<int, AutoWorld.Core.Data.GridMap> gridMaps,
             IReadOnlyDictionary<JobType, IReadOnlyList<ResourceAmount>> jobCosts,
-            IReadOnlyList<EventAction> eventActions)
+            IReadOnlyList<EventAction> eventActions,
+            IDebugLog debugLog)
         {
             if (initConst == null)
             {
@@ -42,7 +43,7 @@ namespace AutoWorld.Core.Services
 
             var resourceManager = new ResourceManager(resourceStore, registryService);
 
-            var fieldManager = new FieldManager(definitions, gridMaps, registryService);
+            var fieldManager = new FieldManager(definitions, gridMaps, registryService, debugLog);
             fieldManager.InitializeTerritory(initConst.InitBadLandSize);
 
             var citizenManager = new CitizenManager(
@@ -65,7 +66,7 @@ namespace AutoWorld.Core.Services
             resourceManager.ConfigureEventActions(eventActionList);
             fieldManager.ConfigureEventActions(eventActionList);
 
-            return new GameSession(scheduler, citizenManager, fieldManager, resourceManager, registryService);
+            return new GameSession(scheduler, citizenManager, fieldManager, resourceManager, registryService, debugLog);
         }
 
         private static void InitializePopulation(CitizenManager citizens, IList<string> jobNames)

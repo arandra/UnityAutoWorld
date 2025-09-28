@@ -27,7 +27,7 @@ MonoBehaviour:
     Name: Quarring
     JobName: Miner
     Tick: 30
-    RiseEvent: QuarringTaskComplete
+    RiseEvent: QuarryingTaskComplete
   - Field: Residence
     Name: Resting
     JobName: Any

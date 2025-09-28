@@ -28,7 +28,7 @@ namespace AutoWorld.Core
         public const string OccupyingTaskComplete = nameof(OccupyingTaskComplete);
         public const string HarvestingTaskComplete = nameof(HarvestingTaskComplete);
         public const string WoodCuttingTaskComplete = nameof(WoodCuttingTaskComplete);
-        public const string QuarringTaskComplete = nameof(QuarringTaskComplete);
+        public const string QuarryingTaskComplete = nameof(QuarryingTaskComplete);
         public const string MakingWeaponTaskComplete = nameof(MakingWeaponTaskComplete);
         public const string MakingArmorTaskComplete = nameof(MakingArmorTaskComplete);
     }

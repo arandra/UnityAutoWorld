@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using AutoWorld.Core;
+using AutoWorld.Game;
 using AutoWorld.Loading.Steps;
 using Datas;
 using UnityEngine;
@@ -16,6 +17,7 @@ namespace AutoWorld.Loading
         [SerializeField] private Tasks tasksAsset;
         [SerializeField] private EventActions eventActionsAsset;
         [SerializeField] private string nextSceneName = "Game";
+        [SerializeField] private DebugLog debugLog;
 
         private void Start()
         {
@@ -27,7 +29,8 @@ namespace AutoWorld.Loading
                 GridMapsAsset = gridMapsAsset,
                 JobsAsset = jobsAsset,
                 TasksAsset = tasksAsset,
-                EventActionsAsset = eventActionsAsset
+                EventActionsAsset = eventActionsAsset,
+                DebugLog = debugLog
             };
 
             var steps = new List<ILoadStep>

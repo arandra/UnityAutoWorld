@@ -11,17 +11,21 @@ namespace AutoWorld.Core
             CitizenManager citizenManager,
             FieldManager fieldManager,
             ResourceManager resourceManager,
-            EventRegistryService registryService)
+            EventRegistryService registryService,
+            IDebugLog debugLog)
         {
             Scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
             Citizens = citizenManager ?? throw new ArgumentNullException(nameof(citizenManager));
             Fields = fieldManager ?? throw new ArgumentNullException(nameof(fieldManager));
             Resources = resourceManager ?? throw new ArgumentNullException(nameof(resourceManager));
             Registry = registryService ?? throw new ArgumentNullException(nameof(registryService));
+            DebugLog = debugLog ?? throw new ArgumentNullException(nameof(debugLog));
 
             Scheduler.Register(Citizens);
             Scheduler.Register(Fields);
             Scheduler.Register(Resources);
+            
+            EventManager.Instance.SetDebugLog(debugLog);
         }
 
         public ManualTickScheduler Scheduler { get; }
@@ -33,6 +37,8 @@ namespace AutoWorld.Core
         public ResourceManager Resources { get; }
 
         public EventRegistryService Registry { get; }
+        
+        public IDebugLog DebugLog { get; }
 
         public TickContext AdvanceTick()
         {
