@@ -1,6 +1,6 @@
 # UnityAutoWorld
 
-UnityAutoWorld는 그리드 기반의 세계에서 자원과 인구를 관리하고, 작업을 자동화하여 세계를 발전시키는 시뮬레이션 게임입니다.
+UnityAutoWorld는 데이터 기반 이벤트 시스템을 테스트 하기 위한 자동 시뮬레이션 게임입니다.
 
 ## 프로젝트 개요 (Project Overview)
 
@@ -57,3 +57,4 @@ UnityAutoWorld는 그리드 기반의 세계에서 자원과 인구를 관리하
 1.  이 프로젝트를 클론(Clone)합니다.
 2.  Unity Hub에서 `AutoWorld` 폴더를 기존 프로젝트로 추가합니다.
 3.  `Assets/Scenes/Loading.unity` 씬을 열고 Unity Editor에서 실행합니다.
+4.  플레이어는 필드 변경과 직업 변경, 2가지 요소에만 개입할 수 있습니다.
