@@ -7,6 +7,7 @@ namespace AutoWorld.Core
         Miner,
         WoodCutter,
         Explorer,
-        Soldier
+        Soldier,
+        Blacksmith
     }
 }

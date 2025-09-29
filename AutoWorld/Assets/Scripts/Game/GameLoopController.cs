@@ -8,11 +8,23 @@ namespace AutoWorld.Game
         private GameSession session;
         private double elapsedMillis;
 
+        [SerializeField]
+        private GridVisualizer gridVisualizer;
+
         private void Start()
         {
+            if (gridVisualizer == null)
+            {
+                gridVisualizer = FindObjectOfType<GridVisualizer>(true);
+            }
+
             if (CoreRuntime.HasSession)
             {
                 session = CoreRuntime.Session;
+                if (gridVisualizer != null)
+                {
+                    gridVisualizer.SetSession(session);
+                }
             }
         }
 

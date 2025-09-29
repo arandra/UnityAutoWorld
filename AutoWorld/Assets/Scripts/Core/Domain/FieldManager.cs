@@ -576,7 +576,62 @@ namespace AutoWorld.Core.Domain
                 case "TransformField":
                     HandleTransformField(action, source, parameter);
                     break;
+                case "ExpandTerritory":
+                    HandleExpandTerritory();
+                    break;
             }
+        }
+
+        private void HandleExpandTerritory()
+        {
+            if (TownHall == null)
+            {
+                RaiseManagerEvent(GameEvents.TerritoryExpansionFailed);
+                return;
+            }
+
+            var candidates = new HashSet<FieldCoordinate>();
+
+            foreach (var field in fields)
+            {
+                foreach (var coordinate in field.Coordinates)
+                {
+                    foreach (var neighbor in EnumerateNeighbors(coordinate))
+                    {
+                        if (coordinateMap.ContainsKey(neighbor))
+                        {
+                            continue;
+                        }
+
+                        candidates.Add(neighbor);
+                    }
+                }
+            }
+
+            if (candidates.Count == 0)
+            {
+                RaiseManagerEvent(GameEvents.TerritoryExpansionFailed);
+                return;
+            }
+
+            var townHallCoordinate = TownHall.Root;
+            FieldCoordinate best = default;
+            var bestDistance = double.MaxValue;
+
+            foreach (var candidate in candidates)
+            {
+                var dx = candidate.X - townHallCoordinate.X;
+                var dy = candidate.Y - townHallCoordinate.Y;
+                var distance = (dx * dx) + (dy * dy);
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    best = candidate;
+                }
+            }
+
+            ReplaceAreaWithField(FieldType.BadLand, new[] { best });
+            RaiseManagerEvent(GameEvents.TerritoryExpansion);
         }
 
         private void HandleTransformField(EventAction action, EventObject source, EventParameter parameter)
@@ -641,56 +696,6 @@ namespace AutoWorld.Core.Domain
             {
                 maxY = coordinate.Y;
             }
-        }
-
-        public bool TryExpandTerritory()
-        {
-            if (TownHall == null)
-            {
-                return false;
-            }
-
-            var candidates = new HashSet<FieldCoordinate>();
-
-            foreach (var field in fields)
-            {
-                foreach (var coordinate in field.Coordinates)
-                {
-                    foreach (var neighbor in EnumerateNeighbors(coordinate))
-                    {
-                        if (coordinateMap.ContainsKey(neighbor))
-                        {
-                            continue;
-                        }
-
-                        candidates.Add(neighbor);
-                    }
-                }
-            }
-
-            if (candidates.Count == 0)
-            {
-                return false;
-            }
-
-            var townHallCoordinate = TownHall.Root;
-            FieldCoordinate best = default;
-            var bestDistance = double.MaxValue;
-
-            foreach (var candidate in candidates)
-            {
-                var dx = candidate.X - townHallCoordinate.X;
-                var dy = candidate.Y - townHallCoordinate.Y;
-                var distance = (dx * dx) + (dy * dy);
-                if (distance < bestDistance)
-                {
-                    bestDistance = distance;
-                    best = candidate;
-                }
-            }
-
-            ReplaceAreaWithField(FieldType.BadLand, new[] { best });
-            return true;
         }
 
         private static IEnumerable<FieldCoordinate> EnumerateNeighbors(FieldCoordinate coordinate)

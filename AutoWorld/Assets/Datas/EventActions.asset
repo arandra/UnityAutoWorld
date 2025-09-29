@@ -81,7 +81,7 @@ MonoBehaviour:
     IntParameter: 0
   - EventName: OccupyingTaskComplete
     EventListener: FieldManager
-    ActionName: TransformField
+    ActionName: ExpandTerritory
     ActionImmediately: 0
     PairParameters: []
     StringParameter: BadLand
