@@ -33,9 +33,9 @@ namespace AutoWorld.Loading
 
         public IReadOnlyList<EventAction> EventActions { get; set; }
 
-        public GameSession GameSession { get; set; }
+        public IGameSession GameSession { get; set; }
         public IDebugLog DebugLog { get; set; }
 
-        public bool IsReady => InitConstData != null && TickScheduler != null && FieldDefinitions != null;
+        public bool IsReady => InitConstData != null && FieldDefinitions != null;
     }
 }

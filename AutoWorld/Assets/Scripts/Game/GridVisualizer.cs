@@ -15,7 +15,7 @@ namespace AutoWorld.Game
         [Tooltip("그리드를 표시할 UI Text 컴포넌트")]
         public Text gridText;
 
-        private GameSession session;
+        private IGameSession session;
         private float timer;
         private const float UpdateInterval = 0.5f; // 0.5초마다 그리드를 업데이트합니다.
 
@@ -27,7 +27,7 @@ namespace AutoWorld.Game
             }
         }
 
-        public void SetSession(GameSession gameSession)
+        public void SetSession(IGameSession gameSession)
         {
             session = gameSession;
         }

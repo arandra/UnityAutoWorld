@@ -1,6 +1,5 @@
 using System;
 using AutoWorld.Core;
-using AutoWorld.Core.Services;
 
 namespace AutoWorld.Loading.Steps
 {
@@ -20,16 +19,15 @@ namespace AutoWorld.Loading.Steps
                 throw new InvalidOperationException("필수 초기화 항목이 준비되지 않았습니다.");
             }
 
-            context.GameSession = CoreBootstrapper.CreateGameSession(
+            context.GameSession = CoreRuntime.InitializeSession(
                 context.InitConstData,
-                context.TickScheduler,
                 context.FieldDefinitions,
                 context.GridMapLookup,
                 context.JobCosts,
                 context.EventActions,
                 context.DebugLog);
-            CoreRuntime.SetSession(context.GameSession);
-            context.TickScheduler.SetTickDuration(context.InitConstData.MillisecondPerTick);
+
+            context.TickScheduler = context.GameSession.Scheduler;
         }
     }
 }

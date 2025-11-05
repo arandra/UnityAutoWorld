@@ -70,7 +70,8 @@ namespace AutoWorld.Game
         private readonly List<GameObject> messageItems = new List<GameObject>();
         private readonly List<GameObject> optionItems = new List<GameObject>();
 
-        private GameSession session;
+        private IGameSession session;
+        private IEventManager eventManager;
         private bool isRegistered;
         private MenuNode rootNode;
         private MenuNode currentNode;
@@ -138,31 +139,32 @@ namespace AutoWorld.Game
             }
 
             session = CoreRuntime.Session;
+            eventManager = EventManager.Instance;
             RegisterEvents();
             RefreshStatusImmediate();
         }
 
         private void RegisterEvents()
         {
-            if (session == null || isRegistered)
+            if (session == null || eventManager == null || isRegistered)
             {
                 return;
             }
 
-            EventManager.Instance.RegisterAll(this);
+            eventManager.RegisterAll(this);
 
             isRegistered = true;
         }
 
         private void UnregisterEvents()
         {
-            if (!isRegistered)
+            if (!isRegistered || eventManager == null)
             {
                 return;
             }
 
-            EventManager.Instance.UnregisterAll(this);
-            EventManager.Instance.Unregister(this);
+            eventManager.UnregisterAll(this);
+            eventManager.Unregister(this);
 
             isRegistered = false;
         }

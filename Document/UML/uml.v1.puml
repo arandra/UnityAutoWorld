@@ -1,17 +1,18 @@
 @startuml
   package "Core" {
-    class CoreBootstrapper
     class CoreRuntime
     class GameSession
-    interface ITickScheduler
-    interface ITickListener
-    interface IEventListener
     class ManualTickScheduler
     class EventManager
     class EventRegistryService
     class CitizenManager
     class FieldManager
     class ResourceManager
+    interface ITickScheduler
+    interface ITickListener
+    interface IEventManager
+    interface IGameSession
+    interface IEventListener
   }
 
   package "Loading" {
@@ -21,7 +22,6 @@
     class DomainBootstrapStep
     class LoadingContext
   }
-
 
   package "Game" {
     class GameLoopController
@@ -33,17 +33,18 @@
   DataLoadingPipeline o-- ILoadStep : 스텝목록
   DataLoadingPipeline --> LoadingContext : 실행
   DomainBootstrapStep ..|> ILoadStep
+
   DomainBootstrapStep --> LoadingContext : 세션등록
-  DomainBootstrapStep -u-> CoreBootstrapper : 세션생성
-  DomainBootstrapStep -u-> CoreRuntime : 세션설정
+  DomainBootstrapStep -u-> CoreRuntime : 세션생성요청
 
-  CoreBootstrapper --> ManualTickScheduler : 의존
-  CoreBootstrapper --> CitizenManager : 생성
-  CoreBootstrapper --> FieldManager : 생성
-  CoreBootstrapper --> ResourceManager : 생성
-  CoreBootstrapper --> EventRegistryService : 구성
   CoreRuntime *-- GameSession : 보관
+  CoreRuntime --> ManualTickScheduler : 스케줄러생성
+  CoreRuntime --> CitizenManager : 초기화
+  CoreRuntime --> FieldManager : 초기화
+  CoreRuntime --> ResourceManager : 초기화
+  CoreRuntime --> EventRegistryService : 초기화
 
+  GameSession --|> IGameSession
   GameSession o-- ManualTickScheduler : 스케줄러
   GameSession o-- CitizenManager
   GameSession o-- FieldManager
@@ -66,14 +67,15 @@
   ResourceManager ..|> IEventListener
   ResourceManager --> EventRegistryService : 식별자발급
 
+  EventManager --|> IEventManager
   EventManager --> IEventListener : 이벤트알림
 
-  GameLoopController -d-> CoreRuntime : 세션조회
-  GameLoopController -d-> GameSession : 틱진행
-  GameLoopController -u-> GridVisualizer : 필드표시
+  GameLoopController --> CoreRuntime : 세션조회
+  GameLoopController --> IGameSession : 틱진행
+  GameLoopController --> GridVisualizer : 필드표시
 
   GameUIController ..|> IEventListener
-  GameUIController --> EventManager : 이벤트구독
+  GameUIController --> IEventManager : 이벤트구독
   GameUIController --> CoreRuntime : 세션획득
-  GameUIController --> GameSession : 상태조회
+  GameUIController --> IGameSession : 상태조회
 @enduml

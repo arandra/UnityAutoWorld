@@ -1,5 +1,4 @@
 using System;
-using AutoWorld.Core;
 using Datas;
 
 namespace AutoWorld.Loading.Steps
@@ -38,7 +37,6 @@ namespace AutoWorld.Loading.Steps
             }
 
             context.InitConstData = asset.Data;
-            context.TickScheduler = new ManualTickScheduler(asset.Data.MillisecondPerTick);
         }
     }
 }

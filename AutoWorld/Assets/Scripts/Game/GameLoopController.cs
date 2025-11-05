@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 using AutoWorld.Core;
 
@@ -5,7 +6,7 @@ namespace AutoWorld.Game
 {
     public sealed class GameLoopController : MonoBehaviour
     {
-        private GameSession session;
+        private IGameSession session;
         private double elapsedMillis;
 
         [SerializeField]
@@ -15,7 +16,7 @@ namespace AutoWorld.Game
         {
             if (gridVisualizer == null)
             {
-                gridVisualizer = FindObjectOfType<GridVisualizer>(true);
+                gridVisualizer = FindObjectsByType<GridVisualizer>(FindObjectsSortMode.InstanceID).First();
             }
 
             if (CoreRuntime.HasSession)

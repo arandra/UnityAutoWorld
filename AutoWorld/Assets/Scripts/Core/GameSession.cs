@@ -4,7 +4,7 @@ using AutoWorld.Core.Services;
 
 namespace AutoWorld.Core
 {
-    public sealed class GameSession
+    public sealed class GameSession : IGameSession
     {
         public GameSession(
             ManualTickScheduler scheduler,

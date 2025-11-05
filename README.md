@@ -54,9 +54,11 @@ UnityAutoWorld는 데이터 기반 이벤트 시스템을 테스트 하기 위�
 
 ## UML 다이어그램
 
-Document/UML/uml.v1.png 파일은 핵심 시스템 관계를 정리한 PlantUML 출력물입니다.
+Document/UML/ 내 다이어그램 이미지는 영역별 관계를 요약한 PlantUML 출력물입니다.
 
-![UML 다이어그램](Document/UML/uml.v1.png)
+- **코어 시스템**: ![Core UML](Document/UML/uml.v1.core.png)
+- **로딩 파이프라인**: ![Loading UML](Document/UML/uml.v1.loading.png)
+- **게임 레이어**: ![Game UML](Document/UML/uml.v1.game.png)
 
 ## 시작하기 (Getting Started)
 

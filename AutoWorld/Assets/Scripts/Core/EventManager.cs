@@ -3,14 +3,14 @@ using System.Collections.Generic;
 
 namespace AutoWorld.Core
 {
-    public sealed class EventManager
+    public sealed class EventManager : IEventManager
     {
         private static readonly Lazy<EventManager> sharedInstance = new Lazy<EventManager>(() => new EventManager());
 
         private readonly Dictionary<string, HashSet<IEventListener>> listenersByEvent = new Dictionary<string, HashSet<IEventListener>>(StringComparer.Ordinal);
         private readonly HashSet<IEventListener> globalListeners = new HashSet<IEventListener>();
 
-        public static EventManager Instance => sharedInstance.Value;
+        public static IEventManager Instance => sharedInstance.Value;
         
         private IDebugLog DebugLog { get; set; } 
         public void SetDebugLog(IDebugLog debugLog) => DebugLog = debugLog;
