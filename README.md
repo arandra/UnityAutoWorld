@@ -52,6 +52,12 @@ UnityAutoWorld는 데이터 기반 이벤트 시스템을 테스트 하기 위�
 *   `Assets/Scripts/Loading/`: `Loading.unity` 씬에서 게임 시작에 필요한 데이터를 미리 불러오는 `DataLoadingPipeline`과 같은 로직을 담당합니다.
 *   `Assets/Datas/`: 게임의 모든 설정값이 여기에 파일 형태로 저장되어 있어, 코드 수정 없이 게임의 거의 모든 측면을 조정할 수 있는 중심적인 역할을 합니다.
 
+## UML 다이어그램
+
+Document/UML/uml.v1.png 파일은 핵심 시스템 관계를 정리한 PlantUML 출력물입니다.
+
+![UML 다이어그램](Document/UML/uml.v1.png)
+
 ## 시작하기 (Getting Started)
 
 1.  이 프로젝트를 클론(Clone)합니다.
