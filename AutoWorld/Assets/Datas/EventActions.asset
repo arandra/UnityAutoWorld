@@ -17,35 +17,45 @@ MonoBehaviour:
     EventListener: ResourceManager
     ActionName: AddResource
     ActionImmediately: 0
-    PairParameters: []
+    PairParameters:
+    - Key: Food
+      Value: 4
     StringParameter: 
     IntParameter: 0
   - EventName: WoodCuttingTaskComplete
     EventListener: ResourceManager
     ActionName: AddResource
     ActionImmediately: 0
-    PairParameters: []
+    PairParameters:
+    - Key: Wood
+      Value: 1
     StringParameter: 
     IntParameter: 0
   - EventName: QuarryingTaskComplete
     EventListener: ResourceManager
     ActionName: AddResource
     ActionImmediately: 0
-    PairParameters: []
+    PairParameters:
+    - Key: Stone
+      Value: 1
     StringParameter: 
     IntParameter: 0
   - EventName: MakingWeaponTaskComplete
     EventListener: ResourceManager
     ActionName: AddResource
     ActionImmediately: 0
-    PairParameters: []
+    PairParameters:
+    - Key: Weapon
+      Value: 1
     StringParameter: 
     IntParameter: 0
   - EventName: MakingArmorTaskComplete
     EventListener: ResourceManager
     ActionName: AddResource
     ActionImmediately: 0
-    PairParameters: []
+    PairParameters:
+    - Key: Armor
+      Value: 1
     StringParameter: 
     IntParameter: 0
   - EventName: OccupyingTaskComplete

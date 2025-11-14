@@ -35,23 +35,40 @@ MonoBehaviour:
     Size: 1
     Slot: 4
     CostTicks: 50
-    CostResources: []
-    Requires: []
+    CostResources:
+    - Key: Wood
+      Value: 4
+    Requires:
+    - LumberMill
   - Name: ExplorationOffice
     Size: 1
     Slot: 2
     CostTicks: 50
-    CostResources: []
-    Requires: []
+    CostResources:
+    - Key: Wood
+      Value: 5
+    Requires:
+    - LumberMill
   - Name: Residence2
     Size: 2
     Slot: 8
     CostTicks: 100
-    CostResources: []
-    Requires: []
+    CostResources:
+    - Key: Wood
+      Value: 12
+    - Key: Stone
+      Value: 4
+    Requires:
+    - Residence
+    - Quarry
   - Name: Smithy
     Size: 1
     Slot: 1
     CostTicks: 50
-    CostResources: []
-    Requires: []
+    CostResources:
+    - Key: Wood
+      Value: 4
+    - Key: Stone
+      Value: 4
+    Requires:
+    - Quarry

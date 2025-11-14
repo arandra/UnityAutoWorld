@@ -26,4 +26,8 @@ MonoBehaviour:
   - Name: Blacksmith
     CostResources: []
   - Name: Soldier
-    CostResources: []
+    CostResources:
+    - Key: Weapon
+      Value: 1
+    - Key: Armor
+      Value: 1

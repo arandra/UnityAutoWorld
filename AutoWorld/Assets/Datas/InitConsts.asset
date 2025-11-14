@@ -10,17 +10,27 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 12f6f05f5d89a9445bc37c955a7375d8, type: 3}
-  m_Name: 
+  m_Name: InitConsts
   m_EditorClassIdentifier: Assembly-CSharp::Datas.InitConsts
   value:
-    MaxSoldierLevel: 10
     WorkerTicks: 300
     DestroyTicks: 15
     FoodConsumeTicks: 70
     SoldierUpgradeTicks: 120
-    InitJobs: []
+    InitJobs:
+    - Soldier
+    - Explorer
+    - Worker
+    - Worker
+    - Worker
+    - Worker
     InitBadLandSize: 12
-    InitFields: []
+    InitFields:
+    - TownHall
+    - ExplorationOffice
+    - Residence
+    - Residence
     InitFood: 50
     MillisecondPerTick: 100
+    MaxSoldierLevel: 10
     TicksForRest: 150

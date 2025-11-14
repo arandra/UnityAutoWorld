@@ -163,7 +163,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3ef587f83f553945b5181c3549588eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initConstAsset: {fileID: 11400000, guid: bc07b41c4f7a2524a82647e03aee4cf1, type: 2}
+  initConstAsset: {fileID: 11400000, guid: 2713fd9d666b8f941b41f543544ca40e, type: 2}
   fieldsAsset: {fileID: 11400000, guid: 3157bacc6a7303e43800127d35c322ae, type: 2}
   fieldTransformsAsset: {fileID: 11400000, guid: 3b3826cba34178747b0fa5e323ed9a71, type: 2}
   gridMapsAsset: {fileID: 11400000, guid: e0aab433a60ff604faabfabf457262bc, type: 2}

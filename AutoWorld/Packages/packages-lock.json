@@ -7,7 +7,7 @@
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "3.0.2"
       },
-      "hash": "32c7fdede7aec0a3a06717d584e811745656dcdd"
+      "hash": "6dc83c9c79e64947aec8c728d16c502213046d12"
     },
     "com.unity.2d.animation": {
       "version": "12.0.2",
