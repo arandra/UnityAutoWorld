@@ -1,0 +1,234 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e98f0a0d90544979b569052d8c19d8b, type: 3}
+  m_Name: GSheetToDataAssetRegistry
+  m_EditorClassIdentifier: GSheetToData.Editor::GSheetToDataForUnity.Editor.GSheetToDataAssetRegistry
+  entries:
+  - SheetId: 1_2Y3BtltwsyXTovWuWV6J32x_Ebe2Sy8vybGNhzkIsM
+    SheetName: EventAction
+    SheetType: 0
+    DataClassName: EventAction
+    ScriptableClassName: EventActions
+    DataClassFullName: AutoWorld.Core.Data.EventAction
+    ScriptableObjectFullName: Datas.EventActions
+    ScriptOutputPath: Assets/Scripts/Core/Data
+    ScriptableScriptOutputPath: Assets/Datas/Scripts
+    AssetOutputPath: Assets/Datas
+    Namespace: AutoWorld.Core.Data
+    ScriptableNamespace: Datas
+    OverrideScriptOutputPath: 0
+    OverrideScriptableScriptOutputPath: 0
+    OverrideAssetOutputPath: 0
+    OverrideNamespace: 0
+    OverrideScriptableNamespace: 0
+    AssetRelativePath: Assets/Datas/EventActions.asset
+    LastSyncedUtc: 2025-11-14T06:33:45.7993492Z
+    LastFieldNames:
+    - eventName
+    - eventListener
+    - actionName
+    - actionImmediately
+    - pairParameter
+    - stringParameter
+    - intParameter
+    LastFieldTypes:
+    - string
+    - string
+    - string
+    - bool
+    - 'Pair<string, int>[]'
+    - string
+    - int
+  - SheetId: 1_2Y3BtltwsyXTovWuWV6J32x_Ebe2Sy8vybGNhzkIsM
+    SheetName: FieldTransform
+    SheetType: 0
+    DataClassName: FieldTransform
+    ScriptableClassName: FieldTransforms
+    DataClassFullName: AutoWorld.Core.Data.FieldTransform
+    ScriptableObjectFullName: Datas.FieldTransforms
+    ScriptOutputPath: Assets/Scripts/Core/Data
+    ScriptableScriptOutputPath: Assets/Datas/Scripts
+    AssetOutputPath: Assets/Datas
+    Namespace: AutoWorld.Core.Data
+    ScriptableNamespace: Datas
+    OverrideScriptOutputPath: 0
+    OverrideScriptableScriptOutputPath: 0
+    OverrideAssetOutputPath: 0
+    OverrideNamespace: 0
+    OverrideScriptableNamespace: 0
+    AssetRelativePath: Assets/Datas/FieldTransforms.asset
+    LastSyncedUtc: 2025-11-14T06:33:38.2422063Z
+    LastFieldNames:
+    - name
+    - size
+    - slot
+    - costTicks
+    - costResource
+    - require
+    LastFieldTypes:
+    - string
+    - int
+    - int
+    - int
+    - 'Pair<string, int>[]'
+    - 'string[]'
+  - SheetId: 1_2Y3BtltwsyXTovWuWV6J32x_Ebe2Sy8vybGNhzkIsM
+    SheetName: Job
+    SheetType: 0
+    DataClassName: Job
+    ScriptableClassName: Jobs
+    DataClassFullName: AutoWorld.Core.Data.Job
+    ScriptableObjectFullName: Datas.Jobs
+    ScriptOutputPath: Assets/Scripts/Core/Data
+    ScriptableScriptOutputPath: Assets/Datas/Scripts
+    AssetOutputPath: Assets/Datas
+    Namespace: AutoWorld.Core.Data
+    ScriptableNamespace: Datas
+    OverrideScriptOutputPath: 0
+    OverrideScriptableScriptOutputPath: 0
+    OverrideAssetOutputPath: 0
+    OverrideNamespace: 0
+    OverrideScriptableNamespace: 0
+    AssetRelativePath: Assets/Datas/Jobs.asset
+    LastSyncedUtc: 2025-11-14T06:33:29.5897123Z
+    LastFieldNames:
+    - name
+    - costResource
+    LastFieldTypes:
+    - string
+    - 'Pair<string, int>[]'
+  - SheetId: 1_2Y3BtltwsyXTovWuWV6J32x_Ebe2Sy8vybGNhzkIsM
+    SheetName: Task
+    SheetType: 0
+    DataClassName: Task
+    ScriptableClassName: Tasks
+    DataClassFullName: AutoWorld.Core.Data.Task
+    ScriptableObjectFullName: Datas.Tasks
+    ScriptOutputPath: Assets/Scripts/Core/Data
+    ScriptableScriptOutputPath: Assets/Datas/Scripts
+    AssetOutputPath: Assets/Datas
+    Namespace: AutoWorld.Core.Data
+    ScriptableNamespace: Datas
+    OverrideScriptOutputPath: 0
+    OverrideScriptableScriptOutputPath: 0
+    OverrideAssetOutputPath: 0
+    OverrideNamespace: 0
+    OverrideScriptableNamespace: 0
+    AssetRelativePath: Assets/Datas/Tasks.asset
+    LastSyncedUtc: 2025-11-14T06:33:12.6942419Z
+    LastFieldNames:
+    - field
+    - name
+    - jobName
+    - tick
+    - riseEvent
+    LastFieldTypes:
+    - string
+    - string
+    - string
+    - int
+    - string
+  - SheetId: 1_2Y3BtltwsyXTovWuWV6J32x_Ebe2Sy8vybGNhzkIsM
+    SheetName: GridMap
+    SheetType: 0
+    DataClassName: GridMap
+    ScriptableClassName: GridMaps
+    DataClassFullName: AutoWorld.Core.Data.GridMap
+    ScriptableObjectFullName: Datas.GridMaps
+    ScriptOutputPath: Assets/Scripts/Core/Data
+    ScriptableScriptOutputPath: Assets/Datas/Scripts
+    AssetOutputPath: Assets/Datas
+    Namespace: AutoWorld.Core.Data
+    ScriptableNamespace: Datas
+    OverrideScriptOutputPath: 0
+    OverrideScriptableScriptOutputPath: 0
+    OverrideAssetOutputPath: 0
+    OverrideNamespace: 0
+    OverrideScriptableNamespace: 0
+    AssetRelativePath: Assets/Datas/GridMaps.asset
+    LastSyncedUtc: 2025-11-14T06:32:41.2002987Z
+    LastFieldNames:
+    - size
+    - x
+    - y
+    LastFieldTypes:
+    - int
+    - int
+    - int
+  - SheetId: 1_2Y3BtltwsyXTovWuWV6J32x_Ebe2Sy8vybGNhzkIsM
+    SheetName: Field
+    SheetType: 0
+    DataClassName: Field
+    ScriptableClassName: Fields
+    DataClassFullName: AutoWorld.Core.Data.Field
+    ScriptableObjectFullName: Datas.Fields
+    ScriptOutputPath: Assets/Scripts/Core/Data
+    ScriptableScriptOutputPath: Assets/Datas/Scripts
+    AssetOutputPath: Assets/Datas
+    Namespace: AutoWorld.Core.Data
+    ScriptableNamespace: Datas
+    OverrideScriptOutputPath: 0
+    OverrideScriptableScriptOutputPath: 0
+    OverrideAssetOutputPath: 0
+    OverrideNamespace: 0
+    OverrideScriptableNamespace: 0
+    AssetRelativePath: Assets/Datas/Fields.asset
+    LastSyncedUtc: 2025-11-14T06:32:24.5644109Z
+    LastFieldNames:
+    - name
+    - empty
+    LastFieldTypes:
+    - string
+    - bool
+  - SheetId: 1_2Y3BtltwsyXTovWuWV6J32x_Ebe2Sy8vybGNhzkIsM
+    SheetName: InitConst
+    SheetType: 1
+    DataClassName: InitConst
+    ScriptableClassName: InitConsts
+    DataClassFullName: AutoWorld.Core.Data.InitConst
+    ScriptableObjectFullName: Datas.InitConsts
+    ScriptOutputPath: Assets/Scripts/Core/Data
+    ScriptableScriptOutputPath: Assets/Datas/Scripts
+    AssetOutputPath: Assets/Datas
+    Namespace: AutoWorld.Core.Data
+    ScriptableNamespace: Datas
+    OverrideScriptOutputPath: 0
+    OverrideScriptableScriptOutputPath: 0
+    OverrideAssetOutputPath: 0
+    OverrideNamespace: 0
+    OverrideScriptableNamespace: 0
+    AssetRelativePath: Assets/Datas/InitConsts.asset
+    LastSyncedUtc: 2025-11-14T06:30:34.2238389Z
+    LastFieldNames:
+    - workerTicks
+    - destroyTicks
+    - foodConsumeTicks
+    - soldierUpgradeTicks
+    - initJob
+    - initBadLandSize
+    - initField
+    - initFood
+    - millisecondPerTick
+    - maxSoldierLevel
+    - ticksForRest
+    LastFieldTypes:
+    - int
+    - int
+    - int
+    - int
+    - 'string[]'
+    - int
+    - 'string[]'
+    - int
+    - int
+    - int
+    - int

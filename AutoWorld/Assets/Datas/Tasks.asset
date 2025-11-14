@@ -9,17 +9,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ad97f7ae9b346e4da7e8d084c36a3dc, type: 3}
+  m_Script: {fileID: 11500000, guid: c24f0fd9661294c4280730c9cb4f3094, type: 3}
   m_Name: Tasks
   m_EditorClassIdentifier: Assembly-CSharp::Datas.Tasks
   Values:
   - Field: CropField
     Name: Harvesting
     JobName: Farmer
-    Tick: 10
+    Tick: 40
     RiseEvent: HarvestingTaskComplete
   - Field: LumberMill
-    Name: Cutting
+    Name: WoodCutting
     JobName: WoodCutter
     Tick: 30
     RiseEvent: WoodCuttingTaskComplete
@@ -40,11 +40,11 @@ MonoBehaviour:
     RiseEvent: OccupyingTaskComplete
   - Field: Smithy
     Name: MakingWeapon
-    JobName: 
+    JobName: Blacksmith
     Tick: 60
     RiseEvent: MakingWeaponTaskComplete
   - Field: Smithy
     Name: MakingArmor
-    JobName: 
+    JobName: Blacksmith
     Tick: 60
     RiseEvent: MakingArmorTaskComplete

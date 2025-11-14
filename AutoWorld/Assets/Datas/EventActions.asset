@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb85a86eb5674bbb8d7f48490356c2b7, type: 3}
+  m_Script: {fileID: 11500000, guid: ef1044c4e9fb50a49a8590bf3564c47a, type: 3}
   m_Name: EventActions
   m_EditorClassIdentifier: Assembly-CSharp::Datas.EventActions
   Values:
@@ -17,45 +17,49 @@ MonoBehaviour:
     EventListener: ResourceManager
     ActionName: AddResource
     ActionImmediately: 0
-    PairParameters:
-    - Key: Food
-      Value: 4
+    PairParameters: []
     StringParameter: 
     IntParameter: 0
   - EventName: WoodCuttingTaskComplete
     EventListener: ResourceManager
     ActionName: AddResource
     ActionImmediately: 0
-    PairParameters:
-    - Key: Wood
-      Value: 1
+    PairParameters: []
     StringParameter: 
     IntParameter: 0
   - EventName: QuarryingTaskComplete
     EventListener: ResourceManager
     ActionName: AddResource
     ActionImmediately: 0
-    PairParameters:
-    - Key: Stone
-      Value: 1
+    PairParameters: []
     StringParameter: 
     IntParameter: 0
   - EventName: MakingWeaponTaskComplete
     EventListener: ResourceManager
     ActionName: AddResource
     ActionImmediately: 0
-    PairParameters:
-    - Key: Weapon
-      Value: 1
+    PairParameters: []
     StringParameter: 
     IntParameter: 0
   - EventName: MakingArmorTaskComplete
     EventListener: ResourceManager
     ActionName: AddResource
     ActionImmediately: 0
-    PairParameters:
-    - Key: Armor
-      Value: 1
+    PairParameters: []
+    StringParameter: 
+    IntParameter: 0
+  - EventName: OccupyingTaskComplete
+    EventListener: FieldManager
+    ActionName: ExpandTerritory
+    ActionImmediately: 0
+    PairParameters: []
+    StringParameter: BadLand
+    IntParameter: 0
+  - EventName: MissingMeal
+    EventListener: CitizenManager
+    ActionName: DestroyCitizen
+    ActionImmediately: 1
+    PairParameters: []
     StringParameter: 
     IntParameter: 0
   - EventName: RestingTaskComplete
@@ -71,18 +75,4 @@ MonoBehaviour:
     ActionImmediately: 0
     PairParameters: []
     StringParameter: Tired
-    IntParameter: 0
-  - EventName: MissingMeal
-    EventListener: CitizenManager
-    ActionName: DestroyCitizen
-    ActionImmediately: 1
-    PairParameters: []
-    StringParameter: 
-    IntParameter: 0
-  - EventName: OccupyingTaskComplete
-    EventListener: FieldManager
-    ActionName: ExpandTerritory
-    ActionImmediately: 0
-    PairParameters: []
-    StringParameter: BadLand
     IntParameter: 0

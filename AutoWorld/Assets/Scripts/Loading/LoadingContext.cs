@@ -7,7 +7,7 @@ namespace AutoWorld.Loading
 {
     public sealed class LoadingContext
     {
-        public Datas.InitConst InitConstAsset { get; set; }
+        public Datas.InitConsts InitConstAsset { get; set; }
 
         public AutoWorld.Core.Data.InitConst InitConstData { get; set; }
 

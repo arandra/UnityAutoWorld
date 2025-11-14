@@ -5,9 +5,9 @@ namespace AutoWorld.Loading.Steps
 {
     public sealed class InitConstLoadStep : ILoadStep
     {
-        private readonly InitConst asset;
+        private readonly InitConsts asset;
 
-        public InitConstLoadStep(InitConst asset)
+        public InitConstLoadStep(InitConsts asset)
         {
             this.asset = asset;
         }
@@ -26,17 +26,17 @@ namespace AutoWorld.Loading.Steps
                 throw new InvalidOperationException("InitConst 자산이 설정되지 않았습니다.");
             }
 
-            if (asset.Data == null)
+            if (asset.Value == null)
             {
                 throw new InvalidOperationException("InitConst 데이터가 비어 있습니다.");
             }
 
-            if (asset.Data.MillisecondPerTick < 1)
+            if (asset.Value.MillisecondPerTick < 1)
             {
                 throw new InvalidOperationException("MillisecondPerTick 값은 1 이상이어야 합니다.");
             }
 
-            context.InitConstData = asset.Data;
+            context.InitConstData = asset.Value;
         }
     }
 }

@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 66df31b71f0456448b2c483a9fb85030, type: 3}
+  m_Script: {fileID: 11500000, guid: 53731dfe07f34814aa0210997322789e, type: 3}
   m_Name: Jobs
   m_EditorClassIdentifier: Assembly-CSharp::Datas.Jobs
   Values:
@@ -23,9 +23,7 @@ MonoBehaviour:
     CostResources: []
   - Name: Explorer
     CostResources: []
+  - Name: Blacksmith
+    CostResources: []
   - Name: Soldier
-    CostResources:
-    - Key: Weapon
-      Value: 1
-    - Key: Armor
-      Value: 1
+    CostResources: []

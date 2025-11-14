@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8dabafcc508f9fd46904a915d981dcf9, type: 3}
+  m_Script: {fileID: 11500000, guid: 8b50ccaae979331468892600357c07ee, type: 3}
   m_Name: FieldTransforms
   m_EditorClassIdentifier: Assembly-CSharp::Datas.FieldTransforms
   Values:
@@ -35,40 +35,23 @@ MonoBehaviour:
     Size: 1
     Slot: 4
     CostTicks: 50
-    CostResources:
-    - Key: Wood
-      Value: 4
-    Requires:
-    - LumberMill
+    CostResources: []
+    Requires: []
   - Name: ExplorationOffice
     Size: 1
     Slot: 2
     CostTicks: 50
-    CostResources:
-    - Key: Wood
-      Value: 5
-    Requires:
-    - LumberMill
+    CostResources: []
+    Requires: []
   - Name: Residence2
     Size: 2
     Slot: 8
     CostTicks: 100
-    CostResources:
-    - Key: Wood
-      Value: 12
-    - Key: Stone
-      Value: 4
-    Requires:
-    - Residence
-    - Quarry
+    CostResources: []
+    Requires: []
   - Name: Smithy
     Size: 1
     Slot: 1
     CostTicks: 50
-    CostResources:
-    - Key: Wood
-      Value: 4
-    - Key: Stone
-      Value: 4
-    Requires:
-    - Quarry
+    CostResources: []
+    Requires: []

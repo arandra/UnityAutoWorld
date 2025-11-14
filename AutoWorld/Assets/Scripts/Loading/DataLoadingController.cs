@@ -9,7 +9,7 @@ namespace AutoWorld.Loading
 {
     public sealed class DataLoadingController : MonoBehaviour
     {
-        [SerializeField] private InitConst initConstAsset;
+        [SerializeField] private InitConsts initConstAsset;
         [SerializeField] private Fields fieldsAsset;
         [SerializeField] private FieldTransforms fieldTransformsAsset;
         [SerializeField] private GridMaps gridMapsAsset;

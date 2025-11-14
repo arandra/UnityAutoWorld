@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.arandra.gsheet-to-data": "https://github.com/arandra/GoogleSheetToDataForUnity.git?path=Packages/com.arandra.gsheet-to-data#main",
     "com.unity.2d.animation": "12.0.2",
     "com.unity.2d.aseprite": "2.0.2",
     "com.unity.2d.psdimporter": "11.0.1",

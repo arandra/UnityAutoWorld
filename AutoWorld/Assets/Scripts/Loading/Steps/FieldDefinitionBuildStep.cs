@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AutoWorld.Core;
 using Datas;
 using AutoWorld.Core.Data;
+using SerializableTypes;
 
 namespace AutoWorld.Loading.Steps
 {
